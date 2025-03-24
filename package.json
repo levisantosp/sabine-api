@@ -1,0 +1,26 @@
+{
+  "name": "sabine-api",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "rm -rf test.js && tsc test.ts && node test.js",
+    "start": "rm -rf dist && tsc && node dist/index.js",
+    "build": "rm -rf dist && tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "description": "",
+  "dependencies": {
+    "@fastify/type-provider-typebox": "^5.1.0",
+    "cheerio": "^1.0.0",
+    "fastify": "^5.2.1",
+    "sileco.db": "^2.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.13",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.8.2"
+  }
+}
