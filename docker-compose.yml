@@ -1,0 +1,12 @@
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: sabine-api
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    ports:
+      - "4000:4000"
