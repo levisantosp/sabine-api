@@ -3,7 +3,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    image: sabine-api
+    image: sabine-api-docker
     restart: always
     volumes:
       - /etc/localtime:/etc/localtime:ro
