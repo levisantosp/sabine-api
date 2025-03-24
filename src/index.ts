@@ -107,7 +107,9 @@ const send_webhook = async(data: any[], path: string) => {
 }
 
 const server = fastify();
-// server.addHook("preHandler", auth);
+if(!process.env.INTERVAL) {
+  server.addHook("preHandler", auth);
+}
 await server.register(routes);
 await server.listen({ host: "0.0.0.0", port: 3000 });
 console.log("API is running");
