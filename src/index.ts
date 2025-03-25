@@ -13,6 +13,7 @@ import results from "./services/valorant/results.js"
 const db = new Database("db.json");
 
 const auth: preHandlerMetaHookHandler = (req, res) => {
+  if(req.url === "/invite") return;
   if(req.headers.authorization !== process.env.AUTH) {
     res.status(401).send({ message: "Access denied" });
     return false;
