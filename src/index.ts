@@ -20,8 +20,9 @@ const auth: preHandlerMetaHookHandler = (req, res) => {
   return true;
 }
 
+const __matches = await matches.get();
 db.set("vlr_events", await events.get());
-db.set("vlr_matches", await matches.get());
+db.set("vlr_matches", __matches.filter(m => new Date(m.when).getDate() === new Date(__matches[0].when).getDate()));
 db.set("vlr_results", await results.get());
 db.set("vlr_news", await news.get());
 db.set("vlr_players", await players.get());
@@ -30,6 +31,9 @@ if(db.fetch("vlr_players_data")) db.remove("vlr_players_data");
 if(db.fetch("vlr_teams_data")) db.remove("vlr_teams_data");
 
 const routes: FastifyPluginAsyncTypebox = async(fastify) => {
+  fastify.get("/invite", async(req, reply) => {
+    return reply.redirect("https://discord.com/oauth2/authorize?client_id=1235576817683922954&scope=bot&permissions=388096", 301).code(200);
+  });
   fastify.get("/events/valorant", {}, () => {
     return db.fetch("vlr_events");
   });
@@ -116,7 +120,8 @@ console.log("API is running");
 
 setInterval(async() => {
   const vlr_new_events = await events.get();
-  const vlr_new_matches = await matches.get();
+  let vlr_new_matches = await matches.get();
+  vlr_new_matches = vlr_new_matches.filter(m => new Date(m.when).getDate() === new Date(vlr_new_matches[0].when).getDate());
   const vlr_new_news = await news.get();
   const vlr_old_matches = db.fetch("vlr_matches");
   const vlr_old_news = db.fetch("vlr_news");
@@ -135,11 +140,10 @@ setInterval(async() => {
 }, process.env.INTERVAL ?? 300000);
 
 setInterval(async() => {
-  const vlr_live_matches = db.fetch("vlr_matches").filter((m: any) => m.status === "LIVE");
-  if(!vlr_live_matches.length) return;
+  const vlr_live_matches = db.fetch("vlr_matches");
   
   let vlr_matches = [];
-  for(const live_match of vlr_live_matches) {
+  for(const live_match of vlr_live_matches.filter((m: any) => m.status === "LIVE")) {
     const match = await livefeed.get(live_match.id);
     vlr_matches.push(match);
   }
