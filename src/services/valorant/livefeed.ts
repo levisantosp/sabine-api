@@ -30,7 +30,11 @@ export default {
       score2: mapScore1,
       id,
       url: "https://www.vlr.gg/" + id,
-      stage
+      stage,
+      tournament: {
+        name: $("div[style='font-weight: 700;']").text().trim(),
+        image: "https:" + $(".match-header-event img").attr("src")
+      }
     } as LiveFeed;
   }
 }
