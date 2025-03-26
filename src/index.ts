@@ -34,6 +34,9 @@ const routes: FastifyPluginAsyncTypebox = async(fastify) => {
   fastify.get("/events/valorant", {}, () => {
     return db.fetch("vlr_events");
   });
+  fastify.get("/results/valorant", {}, () => {
+    return db.fetch("vlr_results");
+  });
   fastify.get("/matches/valorant", {}, () => {
     return db.fetch("vlr_matches");
   });
@@ -122,6 +125,7 @@ setInterval(async() => {
   const vlr_old_news = db.fetch("vlr_news");
   const vlr_array_news = vlr_new_news.filter(nn => !vlr_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)));
   if(vlr_array_news.length) {
+    db.set("vlr_news", vlr_new_news);
     await send_webhook(vlr_array_news, "/webhooks/news/valorant");
   }
   db.set("vlr_events", vlr_new_events);
@@ -139,14 +143,13 @@ setInterval(async() => {
   let old = db.fetch("vlr_live_matches");
   let old_results = db.fetch("vlr_results");
   let array = vlr_matches.filter(m => !old?.some((om: any) => JSON.stringify(m) === JSON.stringify(om)));
-  let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
+  let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)));
   if(array.length) {
+    db.set("vlr_live_matches", vlr_matches);
     await send_webhook(array, "/webhooks/live/valorant");
   }
   if(results_array.length) {
+    db.set("vlr_results", new_results);
     await send_webhook(results_array, "/webhooks/results/valorant");
-  }
-  if(JSON.stringify(old) !== JSON.stringify(vlr_matches)) {
-    db.set("vlr_live_matches", vlr_matches);
   }
 }, process.env.INTERVAL ?? 30000);
