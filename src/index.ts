@@ -10,10 +10,11 @@ import news from "./services/valorant/news.js"
 import players from "./services/valorant/players.js"
 import teams from "./services/valorant/teams.js"
 import results from "./services/valorant/results.js"
+import { MatchesData, PlayerData, TeamData } from "../types/index.js"
 const db = new Database("db.json");
 
 const auth: preHandlerMetaHookHandler = (req, res) => {
-  if(req.url === "/invite") return true;
+  if(req.url.startsWith("/invite")) return;
   if(req.headers.authorization !== process.env.AUTH) {
     res.status(401).send({ message: "Access denied" });
     return false;
@@ -21,9 +22,8 @@ const auth: preHandlerMetaHookHandler = (req, res) => {
   return true;
 }
 
-const __matches = await matches.get();
 db.set("vlr_events", await events.get());
-db.set("vlr_matches", __matches.filter(m => new Date(m.when).getDate() === new Date(__matches[0].when).getDate()));
+db.set("vlr_matches", await matches.get());
 db.set("vlr_results", await results.get());
 db.set("vlr_news", await news.get());
 db.set("vlr_players", await players.get());
@@ -42,7 +42,7 @@ const routes: FastifyPluginAsyncTypebox = async(fastify) => {
     return db.fetch("vlr_matches");
   });
   fastify.get("/live/valorant", {}, () => {
-    return db.fetch("vlr_matches").filter((m: any) => m.status === "LIVE");
+    return db.fetch("vlr_matches").filter((m: MatchesData) => m.status === "LIVE");
   });
   fastify.get("/players/valorant", {
     schema: {
@@ -52,7 +52,7 @@ const routes: FastifyPluginAsyncTypebox = async(fastify) => {
     }
   }, async(req) => {
     if(req.query.id) {
-      let player_data = db.fetch("vlr_players_data")?.find((p: any) => p.id === req.query.id);
+      let player_data = db.fetch("vlr_players_data")?.find((p: PlayerData) => p.id === req.query.id);
       let __players = db.fetch("vlr_players_data") ?? [];
       if(!player_data) {
         player_data = await players.getById(req.query.id);
@@ -73,7 +73,7 @@ const routes: FastifyPluginAsyncTypebox = async(fastify) => {
     }
   }, async(req, res) => {
     if(req.query.id) {
-      let team_data = db.fetch("vlr_teams_data")?.find((t: any) => t.id === req.query.id);
+      let team_data = db.fetch("vlr_teams_data")?.find((t: TeamData) => t.id === req.query.id);
       let __teams = db.fetch("vlr_teams_data") ?? [];
       if(!team_data) {
         team_data = await teams.getById(req.query.id);
@@ -121,40 +121,29 @@ console.log("API is running");
 
 setInterval(async() => {
   const vlr_new_events = await events.get();
-  let vlr_new_matches = await matches.get();
-  vlr_new_matches = vlr_new_matches.filter(m => new Date(m.when).getDate() === new Date(vlr_new_matches[0].when).getDate());
+  const vlr_new_matches = await matches.get();
   const vlr_new_news = await news.get();
-  const vlr_old_matches = db.fetch("vlr_matches");
   const vlr_old_news = db.fetch("vlr_news");
-  const vlr_array_matches = vlr_new_matches.filter(nm => !vlr_old_matches.some((om: any) => JSON.stringify(nm) === JSON.stringify(om)));
   const vlr_array_news = vlr_new_news.filter(nn => !vlr_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)));
-
-  if(vlr_array_matches.length) {
-    await send_webhook(vlr_array_matches, "/webhooks/matches/valorant");
-  }
   if(vlr_array_news.length) {
     await send_webhook(vlr_array_news, "/webhooks/news/valorant");
   }
-
   db.set("vlr_events", vlr_new_events);
   db.set("vlr_matches", vlr_new_matches);
 }, process.env.INTERVAL ?? 300000);
 
 setInterval(async() => {
   const vlr_live_matches = db.fetch("vlr_matches");
-  
   let vlr_matches = [];
-  for(const live_match of vlr_live_matches.filter((m: any) => m.status === "LIVE")) {
+  for(const live_match of vlr_live_matches.filter((m: MatchesData) => m.status === "LIVE")) {
     const match = await livefeed.get(live_match.id);
     vlr_matches.push(match);
   }
-
   let new_results = await results.get();
   let old = db.fetch("vlr_live_matches");
   let old_results = db.fetch("vlr_results");
   let array = vlr_matches.filter(m => !old?.some((om: any) => JSON.stringify(m) === JSON.stringify(om)));
   let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
-  
   if(array.length) {
     await send_webhook(array, "/webhooks/live/valorant");
   }
