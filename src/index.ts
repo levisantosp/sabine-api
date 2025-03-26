@@ -115,7 +115,7 @@ const send_webhook = async(data: any[], path: string) => {
 }
 
 const server = fastify();
-if(process.env.INTERVAL) {
+if(!process.env.INTERVAL) {
   server.addHook("preHandler", auth);
 }
 await server.register(routes);
