@@ -13,12 +13,13 @@ import results from "./services/valorant/results.js"
 import { MatchesData, PlayerData, TeamData } from "../types/index.js"
 const db = new Database("db.json");
 
-const auth: preHandlerMetaHookHandler = (req, res) => {
+const auth: preHandlerMetaHookHandler = (req, res, done) => {
+  if(req.url === "/invite") return done();
   if(req.headers.authorization !== process.env.AUTH) {
     res.status(401).send({ message: "Access denied" });
     return false;
   }
-  return true;
+  return done();
 }
 
 db.set("vlr_events", await events.get());
@@ -31,6 +32,9 @@ if(db.fetch("vlr_players_data")) db.remove("vlr_players_data");
 if(db.fetch("vlr_teams_data")) db.remove("vlr_teams_data");
 
 const routes: FastifyPluginAsyncTypebox = async(fastify) => {
+  fastify.get("/invite", {}, (req, res) => {
+    return res.redirect("https://discord.com/oauth2/authorize?client_id=1235576817683922954&scope=bot&permissions=388096", 301).code(200);
+  });
   fastify.get("/events/valorant", {}, () => {
     return db.fetch("vlr_events");
   });
@@ -111,7 +115,7 @@ const send_webhook = async(data: any[], path: string) => {
 }
 
 const server = fastify();
-if(!process.env.INTERVAL) {
+if(process.env.INTERVAL) {
   server.addHook("preHandler", auth);
 }
 await server.register(routes);
