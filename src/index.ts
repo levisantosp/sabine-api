@@ -14,7 +14,6 @@ import { MatchesData, PlayerData, TeamData } from "../types/index.js"
 const db = new Database("db.json");
 
 const auth: preHandlerMetaHookHandler = (req, res) => {
-  if(req.url.startsWith("/invite")) return;
   if(req.headers.authorization !== process.env.AUTH) {
     res.status(401).send({ message: "Access denied" });
     return false;
@@ -32,9 +31,6 @@ if(db.fetch("vlr_players_data")) db.remove("vlr_players_data");
 if(db.fetch("vlr_teams_data")) db.remove("vlr_teams_data");
 
 const routes: FastifyPluginAsyncTypebox = async(fastify) => {
-  fastify.get("/invite", async(req, reply) => {
-    return reply.redirect("https://discord.com/oauth2/authorize?client_id=1235576817683922954&scope=bot&permissions=388096", 301).code(200);
-  });
   fastify.get("/events/valorant", {}, () => {
     return db.fetch("vlr_events");
   });
