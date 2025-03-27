@@ -2,14 +2,19 @@ import "dotenv/config.js"
 import { FastifyPluginAsyncTypebox, Type } from "@fastify/type-provider-typebox"
 import fastify from "fastify"
 import { preHandlerMetaHookHandler } from "fastify/types/hooks"
-import events from "./services/valorant/events.js"
-import matches from "./services/valorant/matches.js"
 import { Database } from "sileco.db"
-import livefeed from "./services/valorant/livefeed.js"
-import news from "./services/valorant/news.js"
-import players from "./services/valorant/players.js"
-import teams from "./services/valorant/teams.js"
-import results from "./services/valorant/results.js"
+import ValorantEvents from "./services/valorant/events.js"
+import ValorantMatches from "./services/valorant/matches.js"
+import ValorantLiveFeed from "./services/valorant/livefeed.js"
+import ValorantNews from "./services/valorant/news.js"
+import ValorantPlayers from "./services/valorant/players.js"
+import ValorantTeams from "./services/valorant/teams.js"
+import ValorantResults from "./services/valorant/results.js"
+import LOLMatches from "./services/lol/matches.js"
+import LOLEvents from "./services/lol/events.js"
+import LOLLiveFeed from "./services/lol/livefeed.js"
+import LOLNews from "./services/lol/news.js"
+import LOLResults from "./services/lol/results.js"
 import { MatchesData, PlayerData, TeamData } from "../types/index.js"
 const db = new Database("db.json");
 
@@ -22,14 +27,23 @@ const auth: preHandlerMetaHookHandler = (req, res, done) => {
   return done();
 }
 
-db.set("vlr_events", await events.get());
-db.set("vlr_matches", await matches.get());
-db.set("vlr_results", await results.get());
-db.set("vlr_news", await news.get());
-db.set("vlr_players", await players.get());
-db.set("vlr_teams", await teams.get());
+await LOLResults.get();
+
+db.set("vlr_events", await ValorantEvents.get());
+db.set("vlr_matches", await ValorantMatches.get());
+db.set("vlr_results", await ValorantResults.get());
+db.set("vlr_news", await ValorantNews.get());
+db.set("vlr_players", await ValorantPlayers.get());
+db.set("vlr_teams", await ValorantTeams.get());
+db.set("lol_events", await LOLEvents.get());
+db.set("lol_matches", await LOLMatches.get());
+db.set("lol_news", await LOLNews.get());
+db.set("lol_results", await LOLResults.get());
+
 if(db.fetch("vlr_players_data")) db.remove("vlr_players_data");
 if(db.fetch("vlr_teams_data")) db.remove("vlr_teams_data");
+if(!db.fetch("vlr_live_matches")) db.set("vlr_live_matches", []);
+if(!db.fetch("lol_live_matches")) db.set("lol_live_matches", []);
 
 const routes: FastifyPluginAsyncTypebox = async(fastify) => {
   fastify.get("/invite", {}, (req, res) => {
@@ -58,7 +72,7 @@ const routes: FastifyPluginAsyncTypebox = async(fastify) => {
       let player_data = db.fetch("vlr_players_data")?.find((p: PlayerData) => p.id === req.query.id);
       let __players = db.fetch("vlr_players_data") ?? [];
       if(!player_data) {
-        player_data = await players.getById(req.query.id);
+        player_data = await ValorantPlayers.getById(req.query.id);
         __players.push(player_data);
         db.set("vlr_players_data", __players);
       }
@@ -79,7 +93,7 @@ const routes: FastifyPluginAsyncTypebox = async(fastify) => {
       let team_data = db.fetch("vlr_teams_data")?.find((t: TeamData) => t.id === req.query.id);
       let __teams = db.fetch("vlr_teams_data") ?? [];
       if(!team_data) {
-        team_data = await teams.getById(req.query.id);
+        team_data = await ValorantTeams.getById(req.query.id);
         __teams.push(team_data);
         db.set("vlr_teams_data", __teams);
       }
@@ -98,8 +112,9 @@ const routes: FastifyPluginAsyncTypebox = async(fastify) => {
 }
 const send_webhook = async(data: any[], path: string) => {
   try {
+    console.log(process.env.WEBHOOK_URL + path);
     const res = await fetch(process.env.WEBHOOK_URL + path, {
-      method: "POST",
+      method: "post",
       headers: {
         "Content-Type": "application/json"
       },
@@ -123,11 +138,18 @@ await server.listen({ host: "0.0.0.0", port: 3000 });
 console.log("API is running");
 
 setInterval(async() => {
-  const vlr_new_events = await events.get();
-  const vlr_new_matches = await matches.get();
-  const vlr_new_news = await news.get();
+  const vlr_new_events = await ValorantEvents.get();
+  const vlr_new_matches = await ValorantMatches.get();
+  const vlr_new_news = await ValorantNews.get();
+  const lol_new_news = await LOLNews.get();
+  const lol_old_news = db.fetch("lol_news");
   const vlr_old_news = db.fetch("vlr_news");
   const vlr_array_news = vlr_new_news.filter(nn => !vlr_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)));
+  const lol_array_news = lol_new_news.filter(nn => !lol_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)));
+  if(lol_array_news.length) {
+    db.set("lol_news", lol_array_news);
+    await send_webhook(lol_array_news, "/webhooks/news/lol");
+  }
   if(vlr_array_news.length) {
     db.set("vlr_news", vlr_new_news);
     await send_webhook(vlr_array_news, "/webhooks/news/valorant");
@@ -138,16 +160,24 @@ setInterval(async() => {
 
 setInterval(async() => {
   const vlr_live_matches = db.fetch("vlr_matches");
+  const lol_live_matches = db.fetch("lol_matches").filter((m: MatchesData) => m.status === "LIVE");
   let vlr_matches = [];
+  let lol_matches = [];
   for(const live_match of vlr_live_matches.filter((m: MatchesData) => m.status === "LIVE")) {
-    const match = await livefeed.get(live_match.id);
+    const match = await ValorantLiveFeed.get(live_match.id);
     vlr_matches.push(match);
   }
-  let new_results = await results.get();
+  for(const live_match of lol_live_matches) {
+    const match = await LOLLiveFeed.get(live_match.id);
+    lol_matches.push(match);
+  }
+  let new_results = await ValorantResults.get();
   let old = db.fetch("vlr_live_matches");
+  let old_lol_live_matches = db.fetch("lol_live_matches");
   let old_results = db.fetch("vlr_results");
   let array = vlr_matches.filter(m => !old?.some((om: any) => JSON.stringify(m) === JSON.stringify(om)));
   let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)));
+  let lol_live_matches_array = lol_live_matches.filter((m: any) => !old_lol_live_matches.some((om: any) => JSON.stringify(m) === JSON.stringify(om)));
   if(array.length) {
     db.set("vlr_live_matches", vlr_matches);
     await send_webhook(array, "/webhooks/live/valorant");
@@ -155,5 +185,9 @@ setInterval(async() => {
   if(results_array.length) {
     db.set("vlr_results", new_results);
     await send_webhook(results_array, "/webhooks/results/valorant");
+  }
+  if(lol_live_matches_array.length) {
+    db.set("lol_live_matches", lol_live_matches_array);
+    await send_webhook(lol_live_matches_array, "/webhooks/live/lol");
   }
 }, process.env.INTERVAL ?? 30000);
