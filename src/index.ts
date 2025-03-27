@@ -112,7 +112,6 @@ const routes: FastifyPluginAsyncTypebox = async(fastify) => {
 }
 const send_webhook = async(data: any[], path: string) => {
   try {
-    console.log(process.env.WEBHOOK_URL + path);
     const res = await fetch(process.env.WEBHOOK_URL + path, {
       method: "post",
       headers: {
@@ -121,7 +120,7 @@ const send_webhook = async(data: any[], path: string) => {
       body: JSON.stringify(data)
     });
     if(!res.ok) {
-      console.log("Failed to send webhook in path", path);
+      console.log("Failed to send webhook in path", process.env.WEBHOOK_URL + path);
     }
   }
   catch(e) {
@@ -177,7 +176,7 @@ setInterval(async() => {
   let old_results = db.fetch("vlr_results");
   let array = vlr_matches.filter(m => !old?.some((om: any) => JSON.stringify(m) === JSON.stringify(om)));
   let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)));
-  let lol_live_matches_array = lol_live_matches.filter((m: any) => !old_lol_live_matches.some((om: any) => JSON.stringify(m) === JSON.stringify(om)));
+  let lol_live_matches_array = lol_matches.filter((m: any) => !old_lol_live_matches.some((om: any) => JSON.stringify(m) === JSON.stringify(om)));
   if(array.length) {
     db.set("vlr_live_matches", vlr_matches);
     await send_webhook(array, "/webhooks/live/valorant");
