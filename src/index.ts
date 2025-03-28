@@ -27,8 +27,6 @@ const auth: preHandlerMetaHookHandler = (req, res, done) => {
   return done();
 }
 
-await LOLResults.get();
-
 db.set("vlr_events", await ValorantEvents.get());
 db.set("vlr_matches", await ValorantMatches.get());
 db.set("vlr_results", await ValorantResults.get());
@@ -202,7 +200,7 @@ setInterval(async() => {
     await send_webhook(lol_results_array, "/webhooks/results/lol");
   }
   if(lol_live_matches_array.length) {
-    db.set("lol_live_matches", lol_live_matches_array);
+    db.set("lol_live_matches", lol_matches);
     await send_webhook(lol_live_matches_array, "/webhooks/live/lol");
   }
 }, process.env.INTERVAL ?? 30000);
