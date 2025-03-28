@@ -155,7 +155,7 @@ setInterval(async() => {
   const vlr_array_news = vlr_new_news.filter(nn => !vlr_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)));
   const lol_array_news = lol_new_news.filter(nn => !lol_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)));
   if(lol_array_news.length) {
-    db.set("lol_news", lol_array_news);
+    db.set("lol_news", lol_new_news);
     await send_webhook(lol_array_news, "/webhooks/news/lol");
   }
   if(vlr_array_news.length) {
@@ -180,11 +180,14 @@ setInterval(async() => {
     lol_matches.push(match);
   }
   let new_results = await ValorantResults.get();
+  let lol_new_results = await LOLResults.get();
   let old = db.fetch("vlr_live_matches");
   let old_lol_live_matches = db.fetch("lol_live_matches");
   let old_results = db.fetch("vlr_results");
+  let lol_old_results = db.fetch("lol_results");
   let array = vlr_matches.filter(m => !old?.some((om: any) => JSON.stringify(m) === JSON.stringify(om)));
   let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)));
+  let lol_results_array = lol_new_results.filter(r => !lol_old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)));
   let lol_live_matches_array = lol_matches.filter((m: any) => !old_lol_live_matches.some((om: any) => JSON.stringify(m) === JSON.stringify(om)));
   if(array.length) {
     db.set("vlr_live_matches", vlr_matches);
@@ -193,6 +196,10 @@ setInterval(async() => {
   if(results_array.length) {
     db.set("vlr_results", new_results);
     await send_webhook(results_array, "/webhooks/results/valorant");
+  }
+  if(lol_results_array.length) {
+    db.set("lol_results", lol_new_results);
+    await send_webhook(lol_results_array, "/webhooks/results/lol");
   }
   if(lol_live_matches_array.length) {
     db.set("lol_live_matches", lol_live_matches_array);
