@@ -148,6 +148,8 @@ setInterval(async() => {
   const vlr_new_matches = await ValorantMatches.get();
   const vlr_new_news = await ValorantNews.get();
   const lol_new_news = await LOLNews.get();
+  const lol_new_events = await LOLEvents.get();
+  const lol_new_matches = await LOLMatches.get();
   const lol_old_news = db.fetch("lol_news");
   const vlr_old_news = db.fetch("vlr_news");
   const vlr_array_news = vlr_new_news.filter(nn => !vlr_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)));
@@ -162,6 +164,8 @@ setInterval(async() => {
   }
   db.set("vlr_events", vlr_new_events);
   db.set("vlr_matches", vlr_new_matches);
+  db.set("lol_events", lol_new_events);
+  db.set("lol_matches", lol_new_matches);
 }, process.env.INTERVAL ?? 300000);
 
 setInterval(async() => {
