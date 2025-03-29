@@ -3,7 +3,11 @@ import { NewsData } from "../../../types";
 
 export default {
   get: async() => {
-    const html = await (await fetch("https://loltv.gg/news")).text();
+    const html = await (await fetch("https://loltv.gg/news", {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+      }
+    })).text();
     const $ = cheerio.load(html);
     let news: NewsData[] = [];
     $("ol > li").each((_, el) => {

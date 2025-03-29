@@ -3,7 +3,11 @@ import { LiveFeed, PlayerLastResultTeam } from "../../../types"
 
 export default {
   get: async(id: string) => {
-    const html = await (await fetch("https://loltv.gg/match/" + id)).text();
+    const html = await (await fetch("https://loltv.gg/match/" + id, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+      }
+    })).text();
     const $ = cheerio.load(html);
     const teams: PlayerLastResultTeam[] = [];
     $("a[aria-label]").each((i, el) => {

@@ -3,7 +3,11 @@ import { MatchesData, MatchTeam } from "../../../types";
 
 export default {
   get: async () => {
-    const html = await (await fetch("https://loltv.gg/matches")).text();
+    const html = await (await fetch("https://loltv.gg/matches", {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+      }
+    })).text();
     const $ = cheerio.load(html);
     const matches: MatchesData[] = [];
     $("section.flex.flex-col.gap-2").each((i, el) => {
