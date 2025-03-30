@@ -26,7 +26,7 @@ export default {
     return {
       id,
       teams,
-      url: "https://loltv.gg/" + id,
+      url: "https://loltv.gg/match/" + id,
       stage,
       tournament
     } as LiveFeed;
