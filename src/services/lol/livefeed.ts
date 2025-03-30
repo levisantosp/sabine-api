@@ -21,8 +21,10 @@ export default {
     const tournament = {
       name: $("p.text-sm.font-medium.leading-none").eq(0).text().trim()
     }
-    teams[0].score = score1;
-    teams[1].score = score2;
+    if(teams.length) {
+      teams[0].score = score1;
+      teams[1].score = score2;
+    }
     return {
       id,
       teams,
