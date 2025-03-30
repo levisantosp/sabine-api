@@ -17,10 +17,11 @@ export default {
       });
     });
     const [score1, splitter, score2] = $(".text-2xl.whitespace-nowrap").first().text().trim().split(" ");
-    const stage = $("div.text-neutral-50.font-medium.text-xs.leading-none").eq(0).text().trim();
+    const stage = $("div.text-neutral-50.font-medium.text-xs.leading-none").last().text().trim();
     const tournament = {
-      name: $("p.text-sm.font-medium.leading-none").eq(0).text().trim()
+      name: $("p.text-sm.font-medium.leading-none").last().text().trim()
     }
+    console.log(score1, score2);
     if(teams.length) {
       teams[0].score = score1;
       teams[1].score = score2;
