@@ -197,10 +197,10 @@ setInterval(async() => {
   if(results_array.length) {
     await send_webhook(results_array, "/webhooks/results/valorant");
   }
-  if(lol_results_array.length) {
+  if(lol_results_array.length && lol_old_results.length) {
     await send_webhook(lol_results_array, "/webhooks/results/lol");
   }
-  if(lol_live_matches_array.length) {
+  if(lol_live_matches_array.length && old_lol_live_matches.length) {
     await send_webhook(lol_live_matches_array, "/webhooks/live/lol");
   }
   db.set("vlr_live_matches", vlr_matches);
