@@ -179,7 +179,9 @@ setInterval(async() => {
   }
   for(const live_match of lol_live_matches) {
     const match = await LOLLiveFeed.get(live_match.id);
-    lol_matches.push(match);
+    if(match.stage !== "" && match.tournament.name !== "" && match.teams.length) {
+      lol_matches.push(match);
+    }
   }
   let new_results = await ValorantResults.get();
   let lol_new_results = await LOLResults.get();
@@ -199,13 +201,12 @@ setInterval(async() => {
     db.set("vlr_results", new_results);
     await send_webhook(results_array, "/webhooks/results/valorant");
   }
-  if(lol_results_array.length && lol_old_results.length) {
-    db.set("lol_results", lol_new_results);
+  if(lol_results_array.length) {
+    if(lol_new_results.length) db.set("lol_results", lol_new_results);
     await send_webhook(lol_results_array, "/webhooks/results/lol");
   }
-  if(lol_live_matches_array.length && old_lol_live_matches.length) {
-    db.set("lol_live_matches", lol_matches);
+  if(lol_live_matches_array.length) {
+    if(lol_matches.length) db.set("lol_live_matches", lol_matches);
     await send_webhook(lol_live_matches_array, "/webhooks/live/lol");
   }
-  console.log(lol_matches);
 }, process.env.INTERVAL ?? 30000);
