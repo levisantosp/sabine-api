@@ -154,14 +154,14 @@ setInterval(async() => {
   const vlr_old_news = db.fetch("vlr_news");
   const vlr_array_news = vlr_new_news.filter(nn => !vlr_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)));
   const lol_array_news = lol_new_news.filter(nn => !lol_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)));
-  if(lol_array_news.length) {
-    db.set("lol_news", lol_new_news);
+  if(lol_array_news.length && lol_old_news.length) {
     await send_webhook(lol_array_news, "/webhooks/news/lol");
   }
   if(vlr_array_news.length) {
-    db.set("vlr_news", vlr_new_news);
     await send_webhook(vlr_array_news, "/webhooks/news/valorant");
   }
+  db.set("vlr_news", vlr_new_news);
+  db.set("lol_news", lol_new_news);
   db.set("vlr_events", vlr_new_events);
   db.set("vlr_matches", vlr_new_matches);
   db.set("lol_events", lol_new_events);
