@@ -192,19 +192,20 @@ setInterval(async() => {
   let lol_results_array = lol_new_results.filter(r => !lol_old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)));
   let lol_live_matches_array = lol_matches.filter((m: any) => !old_lol_live_matches.some((om: any) => JSON.stringify(m) === JSON.stringify(om)));
   if(array.length) {
+    db.set("vlr_live_matches", vlr_matches);
     await send_webhook(array, "/webhooks/live/valorant");
   }
   if(results_array.length) {
+    db.set("vlr_results", new_results);
     await send_webhook(results_array, "/webhooks/results/valorant");
   }
   if(lol_results_array.length && lol_old_results.length) {
+    db.set("lol_results", lol_new_results);
     await send_webhook(lol_results_array, "/webhooks/results/lol");
   }
   if(lol_live_matches_array.length && old_lol_live_matches.length) {
+    db.set("lol_live_matches", lol_matches);
     await send_webhook(lol_live_matches_array, "/webhooks/live/lol");
   }
-  db.set("vlr_live_matches", vlr_matches);
-  db.set("vlr_results", new_results);
-  db.set("lol_results", lol_new_results);
-  db.set("lol_live_matches", lol_matches);
+  console.log(lol_matches);
 }, process.env.INTERVAL ?? 30000);
