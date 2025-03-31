@@ -160,12 +160,12 @@ setInterval(async() => {
   if(vlr_array_news.length) {
     await send_webhook(vlr_array_news, "/webhooks/news/valorant");
   }
-  db.set("vlr_news", vlr_new_news);
-  db.set("lol_news", lol_new_news);
-  db.set("vlr_events", vlr_new_events);
-  db.set("vlr_matches", vlr_new_matches);
-  db.set("lol_events", lol_new_events);
-  db.set("lol_matches", lol_new_matches);
+  if(vlr_new_news.length) db.set("vlr_news", vlr_new_news);
+  if(lol_new_news.length) db.set("lol_news", lol_new_news);
+  if(vlr_new_events.length) db.set("vlr_events", vlr_new_events);
+  if(vlr_new_matches.length) db.set("vlr_matches", vlr_new_matches);
+  if(lol_new_events.length) db.set("lol_events", lol_new_events);
+  if(lol_new_matches.length) db.set("lol_matches", lol_new_matches);
 }, process.env.INTERVAL ?? 300000);
 
 setInterval(async() => {
