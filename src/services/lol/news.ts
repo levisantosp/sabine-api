@@ -3,7 +3,9 @@ import { NewsData } from "../../../types"
 
 export default {
         get: async() => {
-                const browser = await puppeteer.launch()
+                const browser = await puppeteer.launch({
+                        args: ['--no-sandbox', '--disable-setuid-sandbox']
+                })
                 const page = await browser.newPage()
                 await page.goto("https://loltv.gg/news")
                 const news = await page.$$eval("ol > li", elements => {
@@ -18,7 +20,7 @@ export default {
                         }
                         return __news
                 })
-                
+
                 await browser.close()
                 return news.filter(n => n.url.startsWith("https://loltv.gg/thread/"))
         }
