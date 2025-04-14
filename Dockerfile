@@ -25,8 +25,5 @@ RUN apt-get update && apt-get install -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Instala as dependências do Node
 RUN npm install
-
-# Inicia a aplicação
 CMD ["npm", "start"]
