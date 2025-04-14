@@ -4,7 +4,9 @@ import { EventsData } from "../../../types"
 export default {
         get: async() => {
                 const browser = await puppeteer.launch({
-                        args: ['--no-sandbox', '--disable-setuid-sandbox']
+                        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+                        headless: true,
+                        executablePath: "/usr/bin/google-chrome"
                 })
                 const page = await browser.newPage()
                 await page.goto("https://loltv.gg/events")
