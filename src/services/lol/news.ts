@@ -1,24 +1,25 @@
-import * as cheerio from "cheerio"
-import { NewsData } from "../../../types";
+import puppeteer from "puppeteer"
+import { NewsData } from "../../../types"
 
 export default {
-  get: async() => {
-    const html = await (await fetch("https://loltv.gg/news", {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-      }
-    })).text();
-    const $ = cheerio.load(html);
-    let news: NewsData[] = [];
-    $("ol > li").each((_, el) => {
-      const $news = $(el);
-      const url = "https://loltv.gg" + $news.find("a").attr("href")
-      const title = $news.find("p").text().trim();
-      news.push({
-        title,
-        url
-      });
-    });
-    return news.filter(n => n.url.startsWith("https://loltv.gg/thread/"));
-  }
+        get: async() => {
+                const browser = await puppeteer.launch()
+                const page = await browser.newPage()
+                await page.goto("https://loltv.gg/news")
+                const news = await page.$$eval("ol > li", elements => {
+                        const __news: NewsData[] = []
+                        for(const el of elements) {
+                                const url = "https://loltv.gg" + el.querySelector("a")?.getAttribute("href")
+                                const title = el.querySelector("p")?.textContent?.trim()!
+                                __news.push({
+                                        title,
+                                        url
+                                })
+                        }
+                        return __news
+                })
+                
+                await browser.close()
+                return news.filter(n => n.url.startsWith("https://loltv.gg/thread/"))
+        }
 }

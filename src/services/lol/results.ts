@@ -1,46 +1,51 @@
-import * as cheerio from "cheerio"
-import { PlayerLastResultTeam, ResultsData, ResultsTeam } from "../../../types";
+import puppeteer from "puppeteer"
+import { ResultsData } from "../../../types"
 
 export default {
-  get: async() => {
-    const html = await (await fetch("https://loltv.gg/matches/results", {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-      }
-    })).text();
-    const $ = cheerio.load(html);
-    const results: ResultsData[] = [];
-    $("section").each((_, el) => {
-      const $section = $(el);
-      const date = $section.find("h2").text().trim();
-      $section.find("li").each((_, match) => {
-        const $match = $(match);
-        const url = $match.find("a").attr("href");
-        const teams: any[] = $match.find("p.font-medium.truncate").map((_, el) => {
-          return {
-            name: $(el).text().trim()
-          }
-        }).get();
-        const scores = $match.find("p.font-medium.text-sm").map((_, el) => $(el).text().trim()).get();
-        teams[0].score = scores[1];
-        teams[1].score = scores[3];
-        const tournament = {
-          name: $match.find("div").find("p").last().text()
+        get: async() => {
+                const browser = await puppeteer.launch()
+                const page = await browser.newPage()
+                await page.goto("https://loltv.gg/matches/results")
+                const results = await page.$$eval("section", elements => {
+                        const __results: ResultsData[] = []
+                        for(const el of elements) {
+                                const date = el.querySelector("h2.px-3.font-medium")?.textContent?.trim()!
+                                for(const $match of Array.from(el.querySelectorAll("li"))) {
+                                        const url = $match.querySelector("a")?.getAttribute("href")!
+                                        const teams_els = $match.querySelectorAll("p.font-medium.truncate")
+                                        const teams = Array.from(teams_els).map(el => ({
+                                                name: el.textContent?.trim()!,
+                                                score: ""
+                                        }))
+
+                                        const score_els = $match.querySelectorAll("p.font-medium.text-sm")
+                                        const scores = Array.from(score_els).map(el => {
+                                                let array = el.textContent?.trim()!
+                                                return array
+                                        })
+                                        teams[0].score = scores[1]
+                                        teams[1].score = scores[3]
+                                        const tournament = {
+                                                name: $match.querySelector("p.text-sm.font-medium.leading-none")?.textContent?.trim()!
+                                        }
+                                        const stage = $match.querySelector("div.text-neutral-50.font-medium.text-xs.leading-none")?.textContent?.trim()!
+                                        const hour = $match.querySelectorAll("p.text-neutral-50").item(1)?.textContent?.trim()
+                                        const timestamp = new Date(`${date} ${hour}`).getTime()
+
+                                        __results.push({
+                                                id: url.split("/")[2],
+                                                teams,
+                                                tournament,
+                                                stage,
+                                                when: timestamp,
+                                                url: "https://loltv.gg" + url
+                                        })
+                                }
+                        }
+                        return __results
+                })
+                
+                await browser.close()
+                return results
         }
-        const stage = $match.find("div").last().text().trim();
-        const hour = $match.find("div").find("p.text-neutral-50").first().text().trim();
-        const timestamp = new Date(`${date} ${hour}`).getTime();
-        
-        results.push({
-          id: url!.split("/")[2],
-          teams,
-          tournament,
-          stage,
-          when: timestamp,
-          url: "https://loltv.gg" + url
-        });
-      });
-    });
-    return results;
-  }
 }
