@@ -7,11 +7,11 @@ export default {
                         args: ['--no-sandbox', '--disable-setuid-sandbox']
                 })
                 const page = await browser.newPage()
-                await page.goto("https://loltv.gg/matches")
+                await page.goto("https://loltv.gg/matches", { waitUntil: "load", timeout: 60000 })
                 const matches = await page.$$eval("section.flex.flex-col.gap-2", sections => {
                         const __matches: MatchesData[] = []
                         for(const section of sections) {
-                                const date = section.querySelector("h2.px-3")
+                                const date = section.querySelector("h2.px-3.font-medium")?.textContent?.trim()!
                                 for(const el of Array.from(section.querySelectorAll("li a[href^='/match/']"))) {
                                         const url = el.getAttribute("href") ?? ""
                                         const id = url.split("/")[2]
@@ -20,13 +20,13 @@ export default {
                                         }
                                         const stage = el.querySelector("div.shrink-0 div.text-neutral-50.font-medium.text-xs.leading-none")!.textContent!.trim()
                                         
-                                        const team_elements = section.querySelectorAll("div.truncate.grow.flex.flex-col.gap-2 div.truncate.flex.flex-row.items-center.gap-3")
+                                        const team_elements = el.querySelectorAll("div.truncate.grow.flex.flex-col.gap-2 div.truncate.flex.flex-row.items-center.gap-3")
                                         const teams = []
                                         for(const team_el of Array.from(team_elements)) {
                                                 teams.push({ name: team_el.querySelector("p.font-medium.truncate")!.textContent!.trim() })
                                         }
 
-                                        const hour = el.querySelectorAll(".text-neutral-50")[1].textContent!.trim()
+                                        const hour = el.querySelectorAll("p.text-neutral-50").item(1)?.textContent?.trim()
                                         const timestamp = new Date(`${date} ${hour}`).getTime()
                                         __matches.push({
                                                 id,
