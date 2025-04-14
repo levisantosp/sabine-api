@@ -4,9 +4,7 @@ import { ResultsData } from "../../../types"
 export default {
         get: async() => {
                 const browser = await puppeteer.launch({
-                        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-                        headless: true,
-                        executablePath: "/usr/bin/google-chrome"
+                        args: ['--no-sandbox', '--disable-setuid-sandbox']
                 })
                 const page = await browser.newPage()
                 await page.goto("https://loltv.gg/matches/results")
