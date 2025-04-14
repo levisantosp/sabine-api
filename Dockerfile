@@ -24,6 +24,6 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
-
+RUN npx puppeteer browsers install chrome
 RUN npm install
 CMD ["npm", "start"]
