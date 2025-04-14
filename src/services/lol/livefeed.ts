@@ -7,7 +7,7 @@ export default {
                         args: ['--no-sandbox', '--disable-setuid-sandbox']
                 })
                 const page = await browser.newPage()
-                await page.goto("https://loltv.gg/match/" + id)
+                await page.goto("https://loltv.gg/match/" + id, { waitUntil: "load", timeout: 60000 })
                 const teams = await page.$$eval("a[aria-label]", elements => {
                         return elements.slice(0, 2).map(el => ({ name: el.getAttribute("aria-label")!, score: "" }))
                 })

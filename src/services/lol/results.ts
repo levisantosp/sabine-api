@@ -7,7 +7,7 @@ export default {
                         args: ['--no-sandbox', '--disable-setuid-sandbox']
                 })
                 const page = await browser.newPage()
-                await page.goto("https://loltv.gg/matches/results")
+                await page.goto("https://loltv.gg/matches/results", { waitUntil: "load", timeout: 60000 })
                 const results = await page.$$eval("section", elements => {
                         const __results: ResultsData[] = []
                         for(const el of elements) {

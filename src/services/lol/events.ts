@@ -1,5 +1,4 @@
 import puppeteer from "puppeteer"
-import { EventsData } from "../../../types"
 
 export default {
         get: async() => {
@@ -7,7 +6,7 @@ export default {
                         args: ['--no-sandbox', '--disable-setuid-sandbox']
                 })
                 const page = await browser.newPage()
-                await page.goto("https://loltv.gg/events")
+                await page.goto("https://loltv.gg/events", { waitUntil: "load", timeout: 60000 })
                 const events = await page.$$eval("p.text-sm.font-medium.leading-none", elements => {
                         return elements.map(el => ({ name: el.textContent?.trim() }))
                 })
