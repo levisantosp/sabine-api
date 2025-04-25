@@ -8,7 +8,7 @@
     "build": "rm -rf dist && tsc"
   },
   "keywords": [],
-  "author": "",
+  "author": "levisantosp",
   "license": "ISC",
   "type": "module",
   "description": "",
@@ -16,7 +16,6 @@
     "@fastify/type-provider-typebox": "^5.1.0",
     "cheerio": "^1.0.0",
     "fastify": "^5.2.1",
-    "puppeteer": "^24.6.1",
     "sileco.db": "^2.2.2"
   },
   "devDependencies": {

@@ -11,7 +11,9 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "allowJs": true,
+    "checkJs": false
   },
   "include": ["src", "env.d.ts", "types"],
   "exclude": ["node_modules"]
