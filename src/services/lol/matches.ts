@@ -1,48 +1,36 @@
-import puppeteer from "puppeteer"
 import { MatchesData } from "../../../types"
 
 export default {
         get: async() => {
-                const browser = await puppeteer.launch({
-                        args: ['--no-sandbox', '--disable-setuid-sandbox']
-                })
-                const page = await browser.newPage()
-                await page.goto("https://loltv.gg/matches", { waitUntil: "load", timeout: 60000 })
-                const matches = await page.$$eval("section.flex.flex-col.gap-2", sections => {
-                        const __matches: MatchesData[] = []
-                        for(const section of sections) {
-                                const date = section.querySelector("h2.px-3.font-medium")?.textContent?.trim()!
-                                for(const el of Array.from(section.querySelectorAll("li a[href^='/match/']"))) {
-                                        const url = el.getAttribute("href") ?? ""
-                                        const id = url.split("/")[2]
-                                        const tournament = {
-                                                name: el.querySelector("div.shrink-0 p.text-sm.font-medium.leading-none")!.textContent!.trim()
-                                        }
-                                        const stage = el.querySelector("div.shrink-0 div.text-neutral-50.font-medium.text-xs.leading-none")!.textContent!.trim()
-                                        
-                                        const team_elements = el.querySelectorAll("div.truncate.grow.flex.flex-col.gap-2 div.truncate.flex.flex-row.items-center.gap-3")
-                                        const teams = []
-                                        for(const team_el of Array.from(team_elements)) {
-                                                teams.push({ name: team_el.querySelector("p.font-medium.truncate")!.textContent!.trim() })
-                                        }
-
-                                        const hour = el.querySelectorAll("p.text-neutral-50").item(1)?.textContent?.trim()
-                                        const timestamp = new Date(`${date} ${hour}`).getTime()
-                                        __matches.push({
-                                                id,
-                                                teams: teams.slice(0, 2),
-                                                tournament,
-                                                url: "https://loltv.gg" + url,
-                                                stage,
-                                                when: timestamp,
-                                                status: isNaN(timestamp) ? "LIVE" : "Upcoming"
-                                        })
+                const json = await (await fetch(
+                        "https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US",
+                        {
+                                headers: {
+                                        "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"
                                 }
                         }
-                        return __matches
+                )).json()
+
+                const matches: MatchesData[] = json.data.schedule.events.map((e: any) => {
+                        if(e.match) return {
+                                id: e.match.id,
+                                teams: [
+                                        {
+                                                name: e.match.teams[0].name
+                                        },
+                                        {
+                                                name: e.match.teams[1].name
+                                        }
+                                ],
+                                tournament: {
+                                        name: e.league.name
+                                },
+                                stage: e.blockName,
+                                when: new Date(e.startTime).getTime(),
+                                status: e.state
+                        }
                 })
 
-                await browser.close()
-                return matches
+                return matches.filter(m => m && m.status !== "completed")
         }
 }

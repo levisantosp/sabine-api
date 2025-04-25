@@ -1,17 +1,24 @@
-import puppeteer from "puppeteer"
+import { EventsData } from "../../../types/index.js"
 
 export default {
         get: async() => {
-                const browser = await puppeteer.launch({
-                        args: ['--no-sandbox', '--disable-setuid-sandbox']
-                })
-                const page = await browser.newPage()
-                await page.goto("https://loltv.gg/events", { waitUntil: "load", timeout: 60000 })
-                const events = await page.$$eval("p.text-sm.font-medium.leading-none", elements => {
-                        return elements.map(el => ({ name: el.textContent?.trim() }))
-                })
+                const json = await (await fetch(
+                        "https://esports-api.lolesports.com/persisted/gw/getLeagues?hl=en-US",
+                        {
+                                headers: {
+                                        "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"
+                                }
+                        }
+                )).json()
 
-                await browser.close()
+                const events: EventsData[] = json.data.leagues.map((d: any) => (
+                        {
+                                name: d.name,
+                                id: d.id,
+                                image: d.image
+                        }
+                ))
+                
                 return events
         }
 }

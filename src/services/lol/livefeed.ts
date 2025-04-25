@@ -1,42 +1,38 @@
-import puppeteer from "puppeteer"
 import { LiveFeed } from "../../../types"
 
 export default {
-        get: async(id: string): Promise<LiveFeed> => {
-                const browser = await puppeteer.launch({
-                        args: ['--no-sandbox', '--disable-setuid-sandbox']
-                })
-                const page = await browser.newPage()
-                await page.goto("https://loltv.gg/match/" + id, { waitUntil: "load", timeout: 60000 })
-                const teams = await page.$$eval("a[aria-label]", elements => {
-                        return elements.slice(0, 2).map(el => ({ name: el.getAttribute("aria-label")!, score: "" }))
-                })
-                const [score1, score2] = await page.$eval(".text-2xl.whitespace-nowrap", el => {
-                        let array = el.textContent!.trim().split(" ")
-                        array.splice(1, 1)
-                        return array
-                })
-                const stage = await page.$$eval("div.text-neutral-50.font-medium.text-xs.leading-none", elements => {
-                        const last = elements[elements.length - 1]
-                        return last.textContent!.trim()
-                })
-                const tournament = {
-                        name: await page.$$eval("p.text-sm.font-medium.leading-none", elements => {
-                                const last = elements[elements.length - 1]
-                                return last.textContent!.trim()
-                        })
-                }
-                
-                teams[0].score = score1
-                teams[1].score = score2
+        get: async() => {
+                const json = await (await fetch(
+                        "https://esports-api.lolesports.com/persisted/gw/getLive?hl=en-US",
+                        {
+                                headers: {
+                                        "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"
+                                }
+                        }
+                )).json()
 
-                await browser.close()
-                return {
-                        id,
-                        teams,
-                        url: "https://loltv.gg/match/" + id,
-                        stage,
-                        tournament
-                }
+                const matches: LiveFeed[] = json.data.schedule.events.map((e: any) => {
+                        let teams = e.match ? [
+                                {
+                                        name: e.match.teams[0].name,
+                                        score: e.match.teams[0].result.gameWins
+                                },
+                                {
+                                        name: e.match.teams[1].name,
+                                        score: e.match.teams[1].result.gameWins
+                                }
+                        ] : []
+                        return {
+                                id: e.id,
+                                tournament: {
+                                        name: e.league.name,
+                                        image: e.league.image
+                                },
+                                teams,
+                                stage: e.blockName
+                        }
+                })
+
+                return matches
         }
 }
