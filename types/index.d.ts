@@ -1,6 +1,6 @@
 export type EventsData = {
         id?: string
-        name?: string
+        name: string
         status?: string
         image?: string
         url?: string
@@ -39,7 +39,7 @@ export type PlayerPastTeam = {
 }
 export type PlayerLastResultTeam = {
         name: string
-        score?: string
+        score?: string | number
 }
 export type PlayerLastResult = {
         id: string
@@ -113,13 +113,18 @@ export type NewsData = {
         url: string
         id?: string
 }
+export type LiveFeedStream = {
+        parameter: string
+        provider: string
+}
 export type LiveFeed = {
         teams: PlayerLastResultTeam[]
         currentMap?: string
         score1?: string
         score2?: string
         id: string | number
-        url: string
-        stage: string
+        url?: string
+        stage?: string
         tournament: MatchTournament
+        streams?: LiveFeedStream[]
 }

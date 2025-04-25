@@ -13,7 +13,6 @@ import ValorantResults from "./services/valorant/results.js"
 import LOLMatches from "./services/lol/matches.js"
 import LOLEvents from "./services/lol/events.js"
 import LOLLiveFeed from "./services/lol/livefeed.js"
-import LOLNews from "./services/lol/news.js"
 import LOLResults from "./services/lol/results.js"
 import { MatchesData, PlayerData, TeamData } from "../types/index.js"
 const db = new Database("db.json")
@@ -35,7 +34,6 @@ db.set("vlr_players", await ValorantPlayers.get())
 db.set("vlr_teams", await ValorantTeams.get())
 db.set("lol_events", await LOLEvents.get())
 db.set("lol_matches", await LOLMatches.get())
-db.set("lol_news", await LOLNews.get())
 db.set("lol_results", await LOLResults.get())
 
 if(db.fetch("vlr_players_data")) db.remove("vlr_players_data")
@@ -147,21 +145,15 @@ setInterval(async () => {
         const vlr_new_events = await ValorantEvents.get()
         const vlr_new_matches = await ValorantMatches.get()
         const vlr_new_news = await ValorantNews.get()
-        const lol_new_news = await LOLNews.get()
         const lol_new_events = await LOLEvents.get()
         const lol_new_matches = await LOLMatches.get()
-        const lol_old_news = db.fetch("lol_news")
         const vlr_old_news = db.fetch("vlr_news")
         const vlr_array_news = vlr_new_news.filter(nn => !vlr_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)))
-        const lol_array_news = lol_new_news.filter(nn => !lol_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)))
-        if(lol_array_news.length && lol_old_news.length) {
-                await send_webhook(lol_array_news, "/webhooks/news/lol")
-        }
+
         if(vlr_array_news.length) {
                 await send_webhook(vlr_array_news, "/webhooks/news/valorant")
         }
         if(vlr_new_news.length) db.set("vlr_news", vlr_new_news)
-        if(lol_new_news.length) db.set("lol_news", lol_new_news)
         if(vlr_new_events.length) db.set("vlr_events", vlr_new_events)
         if(vlr_new_matches.length) db.set("vlr_matches", vlr_new_matches)
         if(lol_new_events.length) db.set("lol_events", lol_new_events)
@@ -170,19 +162,18 @@ setInterval(async () => {
 
 setInterval(async () => {
         const vlr_live_matches = db.fetch("vlr_matches")
-        const lol_live_matches = db.fetch("lol_matches").filter((m: MatchesData) => m.status === "LIVE")
+        const lol_live_matches = await LOLLiveFeed.get()
         let vlr_matches = []
         let lol_matches = []
+
         for (const live_match of vlr_live_matches.filter((m: MatchesData) => m.status === "LIVE")) {
                 const match = await ValorantLiveFeed.get(live_match.id)
                 vlr_matches.push(match)
         }
         for (const live_match of lol_live_matches) {
-                const match = await LOLLiveFeed.get(live_match.id)
-                if(match.stage !== "" && match.tournament.name !== "" && match.teams.length) {
-                        lol_matches.push(match)
-                }
+                lol_matches.push(live_match)
         }
+
         let new_results = await ValorantResults.get()
         let lol_new_results = await LOLResults.get()
         let old = db.fetch("vlr_live_matches")
@@ -193,6 +184,7 @@ setInterval(async () => {
         let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
         let lol_results_array = lol_new_results.filter(r => !lol_old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
         let lol_live_matches_array = lol_matches.filter((m: any) => !old_lol_live_matches.some((om: any) => JSON.stringify(m) === JSON.stringify(om)))
+
         if(array.length) {
                 db.set("vlr_live_matches", vlr_matches)
                 await send_webhook(array, "/webhooks/live/valorant")
