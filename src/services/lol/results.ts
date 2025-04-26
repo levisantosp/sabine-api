@@ -17,11 +17,11 @@ export default {
                                 teams: [
                                         {
                                                 name: e.match.teams[0].name,
-                                                score: e.match.teams[0].result.gameWins
+                                                score: e.match.teams[0].result?.gameWins
                                         },
                                         {
                                                 name: e.match.teams[1].name,
-                                                score: e.match.teams[1].result.gameWins
+                                                score: e.match.teams[1].result?.gameWins
                                         }
                                 ],
                                 tournament: {
