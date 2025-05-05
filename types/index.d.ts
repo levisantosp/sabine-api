@@ -11,7 +11,8 @@ export type MatchTeam = {
 }
 export type MatchTournament = {
         name: string
-        image?: string
+        full_name?: string
+        image?: string | null
 }
 export type MatchesData = {
         id?: string
@@ -114,8 +115,11 @@ export type NewsData = {
         id?: string
 }
 export type LiveFeedStream = {
-        parameter: string
-        provider: string
+        main: boolean
+        language: string
+        embed_url: string
+        official: boolean
+        raw_url: string
 }
 export type LiveFeed = {
         teams: PlayerLastResultTeam[]
