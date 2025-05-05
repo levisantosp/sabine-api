@@ -114,6 +114,9 @@ const routes: FastifyPluginAsyncTypebox = async (fastify) => {
         fastify.get("/results/lol", {}, () => {
                 return db.fetch("lol_results")
         })
+        fastify.get("/live/lol", {}, () => {
+                return db.fetch("lol_live_matches")
+        })
 }
 const send_webhook = async (data: any[], path: string) => {
         try {
