@@ -2,32 +2,35 @@ import { MatchesData } from "../../../types"
 
 export default {
         get: async() => {
-                const json = await (await fetch(
-                        "https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US",
+                const res = await (await fetch(
+                        "https://api.pandascore.co/lol/matches/upcoming?per_page=100&sort=begin_at",
                         {
                                 headers: {
-                                        "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"
+                                        accept: "application/json",
+                                        authorization: process.env.PANDA_TOKEN
                                 }
                         }
                 )).json()
 
-                const matches: MatchesData[] = json.data.schedule.events.map((e: any) => {
-                        if(e.match) return {
-                                id: e.match.id,
+                const matches: MatchesData[] = res.map((e: any) => {
+                        return {
+                                id: e.id,
                                 teams: [
                                         {
-                                                name: e.match.teams[0].name
+                                                name: e.opponents[0]?.opponent.name
                                         },
                                         {
-                                                name: e.match.teams[1].name
+                                                name: e.opponents[1]?.opponent.name
                                         }
                                 ],
                                 tournament: {
-                                        name: e.league.name
+                                        name: e.league.name,
+                                        full_name: `${e.league.name} ${e.serie.full_name}`,
+                                        image: e.league.image_url
                                 },
-                                stage: e.blockName,
-                                when: new Date(e.startTime).getTime(),
-                                status: e.state
+                                stage: e.tournament.name,
+                                when: new Date(e.scheduled_at).getTime(),
+                                status: e.status
                         }
                 })
 

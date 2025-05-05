@@ -2,22 +2,30 @@ import { EventsData } from "../../../types/index.js"
 
 export default {
         get: async() => {
-                const json = await (await fetch(
-                        "https://esports-api.lolesports.com/persisted/gw/getLeagues?hl=en-US",
+                const res = await (await fetch(
+                        "https://api.pandascore.co/lol/leagues?per_page=100",
                         {
                                 headers: {
-                                        "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"
+                                        accept: "application/json",
+                                        authorization: process.env.PANDA_TOKEN
                                 }
                         }
                 )).json()
-
-                const events: EventsData[] = json.data.leagues.map((d: any) => (
+                
+                let events: EventsData[] = res.map((d: any) => (
                         {
                                 name: d.name,
                                 id: d.id,
-                                image: d.image
+                                image: d.image_url
                         }
                 ))
+
+                let seen = new Set()
+                events = events.filter(i => {
+                        if(seen.has(i.name)) return false
+                        seen.add(i.name)
+                        return true
+                })
                 
                 return events
         }

@@ -2,34 +2,36 @@ import { LiveFeed } from "../../../types"
 
 export default {
         get: async() => {
-                const json = await (await fetch(
-                        "https://esports-api.lolesports.com/persisted/gw/getLive?hl=en-US",
+                const res = await (await fetch(
+                        "https://api.pandascore.co/lol/matches/running?per_page=100&sort=begin_at",
                         {
                                 headers: {
-                                        "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"
+                                        accept: "application/json",
+                                        authorization: process.env.PANDA_TOKEN
                                 }
                         }
                 )).json()
 
-                const matches: LiveFeed[] = json.data.schedule.events.map((e: any) => {
-                        let teams = e.match ? [
-                                {
-                                        name: e.match.teams[0].name,
-                                        score: e.match.teams[0].result.gameWins
-                                },
-                                {
-                                        name: e.match.teams[1].name,
-                                        score: e.match.teams[1].result.gameWins
-                                }
-                        ] : []
+                const matches: LiveFeed[] = res.map((e: any) => {
                         return {
                                 id: e.id,
                                 tournament: {
                                         name: e.league.name,
-                                        image: e.league.image
+                                        full_name: `${e.league.name} ${e.serie.full_name}`,
+                                        image: e.league.image_url
                                 },
-                                teams,
-                                stage: e.blockName
+                                teams: [
+                                        {
+                                                name: e.opponents[0].opponent.name,
+                                                score: e.results[0].score
+                                        },
+                                        {
+                                                name: e.opponents[1].opponent.name,
+                                                score: e.results[1].score
+                                        }
+                                ],
+                                stage: e.tournament.name,
+                                streams: e.streams_list
                         }
                 })
 
