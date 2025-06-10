@@ -130,6 +130,7 @@ const send_webhook = async (data: any[], path: string) => {
     if(!res.ok) {
       console.log("Failed to send webhook in path", process.env.WEBHOOK_URL + path)
     }
+    console.log("enviado")
   }
   catch (e) {
     console.error(e)
