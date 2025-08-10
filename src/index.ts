@@ -161,7 +161,7 @@ setInterval(async () => {
   if(vlr_new_matches.length) db.set("vlr_matches", vlr_new_matches)
   if(lol_new_events.length) db.set("lol_events", lol_new_events)
   if(lol_new_matches.length) db.set("lol_matches", lol_new_matches)
-}, process.env.INTERVAL ?? 300000)
+}, 300000)
 
 setInterval(async () => {
   const vlr_live_matches = db.fetch("vlr_matches")

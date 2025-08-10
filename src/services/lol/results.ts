@@ -13,16 +13,22 @@ export default {
     )).json()
 
     const matches: ResultsData[] = res.map((e: any) => {
+      const winnerScore = Math.max(
+        e.results[0]?.score,
+        e.results[1]?.score
+      )
       return {
         id: e.id.toString(),
         teams: [
           {
             name: e.opponents[0]?.opponent.name,
-            score: e.results[0]?.score
+            score: e.results[0]?.score,
+            winner: e.results[0]?.score === winnerScore ? true : false
           },
           {
             name: e.opponents[1]?.opponent.name,
-            score: e.results[1]?.score
+            score: e.results[1]?.score,
+            winner: e.results[1]?.score === winnerScore ? true : false
           }
         ],
         tournament: {
@@ -35,7 +41,6 @@ export default {
         status: e.status
       }
     })
-
     return matches
   }
 }
