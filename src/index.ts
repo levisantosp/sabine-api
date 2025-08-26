@@ -26,15 +26,20 @@ const auth: preHandlerMetaHookHandler = (req, res, done) => {
   return done()
 }
 
-db.set("vlr_events", await ValorantEvents.get())
-db.set("vlr_matches", await ValorantMatches.get())
-db.set("vlr_results", await ValorantResults.get())
-db.set("vlr_news", await ValorantNews.get())
-db.set("vlr_players", await ValorantPlayers.get())
-db.set("vlr_teams", await ValorantTeams.get())
-db.set("lol_events", await LOLEvents.get())
-db.set("lol_matches", await LOLMatches.get())
-db.set("lol_results", await LOLResults.get())
+try {
+  db.set("vlr_events", await ValorantEvents.get())
+  db.set("vlr_matches", await ValorantMatches.get())
+  db.set("vlr_results", await ValorantResults.get())
+  db.set("vlr_news", await ValorantNews.get())
+  db.set("vlr_players", await ValorantPlayers.get())
+  db.set("vlr_teams", await ValorantTeams.get())
+  db.set("lol_events", await LOLEvents.get())
+  db.set("lol_matches", await LOLMatches.get())
+  db.set("lol_results", await LOLResults.get())
+}
+catch(e) {
+  console.log(e)
+}
 
 if(db.fetch("vlr_players_data")) db.remove("vlr_players_data")
 if(db.fetch("vlr_teams_data")) db.remove("vlr_teams_data")
@@ -145,63 +150,69 @@ await server.listen({ host: "0.0.0.0", port: 3000 })
 console.log("API is running")
 
 setInterval(async () => {
-  const vlr_new_events = await ValorantEvents.get()
-  const vlr_new_matches = await ValorantMatches.get()
-  const vlr_new_news = await ValorantNews.get()
-  const lol_new_events = await LOLEvents.get()
-  const lol_new_matches = await LOLMatches.get()
-  const vlr_old_news = db.fetch("vlr_news")
-  const vlr_array_news = vlr_new_news.filter(nn => !vlr_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)))
-
-  if(vlr_array_news.length) {
-    await send_webhook(vlr_array_news, "/webhooks/news/valorant")
+  try {
+    const vlr_new_events = await ValorantEvents.get()
+    const vlr_new_matches = await ValorantMatches.get()
+    const vlr_new_news = await ValorantNews.get()
+    const lol_new_events = await LOLEvents.get()
+    const lol_new_matches = await LOLMatches.get()
+    const vlr_old_news = db.fetch("vlr_news")
+    const vlr_array_news = vlr_new_news.filter(nn => !vlr_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)))
+    if(vlr_array_news.length) {
+      await send_webhook(vlr_array_news, "/webhooks/news/valorant")
+    }
+    if(vlr_new_news.length) db.set("vlr_news", vlr_new_news)
+    if(vlr_new_events.length) db.set("vlr_events", vlr_new_events)
+    if(vlr_new_matches.length) db.set("vlr_matches", vlr_new_matches)
+    if(lol_new_events.length) db.set("lol_events", lol_new_events)
+    if(lol_new_matches.length) db.set("lol_matches", lol_new_matches)
   }
-  if(vlr_new_news.length) db.set("vlr_news", vlr_new_news)
-  if(vlr_new_events.length) db.set("vlr_events", vlr_new_events)
-  if(vlr_new_matches.length) db.set("vlr_matches", vlr_new_matches)
-  if(lol_new_events.length) db.set("lol_events", lol_new_events)
-  if(lol_new_matches.length) db.set("lol_matches", lol_new_matches)
+catch(e) {
+  console.error(e)
+}
 }, 300000)
 
 setInterval(async () => {
-  const vlr_live_matches = db.fetch("vlr_matches")
-  const lol_live_matches = await LOLLiveFeed.get()
-  let vlr_matches = []
-  let lol_matches = []
-
-  for (const live_match of vlr_live_matches.filter((m: MatchesData) => m.status === "LIVE")) {
-    const match = await ValorantLiveFeed.get(live_match.id)
-    vlr_matches.push(match)
+  try {
+    const vlr_live_matches = db.fetch("vlr_matches")
+    const lol_live_matches = await LOLLiveFeed.get()
+    let vlr_matches = []
+    let lol_matches = []
+    for(const live_match of vlr_live_matches.filter((m: MatchesData) => m.status === "LIVE")) {
+      const match = await ValorantLiveFeed.get(live_match.id)
+      vlr_matches.push(match)
+    }
+    for(const live_match of lol_live_matches) {
+      lol_matches.push(live_match)
+    }
+    let new_results = await ValorantResults.get()
+    let lol_new_results = await LOLResults.get()
+    let old = db.fetch("vlr_live_matches")
+    let old_lol_live_matches = db.fetch("lol_live_matches")
+    let old_results = db.fetch("vlr_results")
+    let lol_old_results = db.fetch("lol_results")
+    let array = vlr_matches.filter(m => !old?.some((om: any) => JSON.stringify(m) === JSON.stringify(om)))
+    let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
+    let lol_results_array = lol_new_results.filter(r => !lol_old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
+    let lol_live_matches_array = lol_matches.filter((m: any) => !old_lol_live_matches.some((om: any) => JSON.stringify(m) === JSON.stringify(om)))
+    if(array.length) {
+      db.set("vlr_live_matches", vlr_matches)
+      await send_webhook(array, "/webhooks/live/valorant")
+    }
+    if(results_array.length) {
+      db.set("vlr_results", new_results)
+      await send_webhook(results_array, "/webhooks/results/valorant")
+    }
+    if(lol_results_array.length) {
+      if(lol_new_results.length) db.set("lol_results", lol_new_results)
+      await send_webhook(lol_results_array, "/webhooks/results/lol")
+    }
+    if(lol_live_matches_array.length) {
+      if(lol_matches.length) db.set("lol_live_matches", lol_matches)
+      await send_webhook(lol_live_matches_array, "/webhooks/live/lol")
+    }
   }
-  for (const live_match of lol_live_matches) {
-    lol_matches.push(live_match)
-  }
-
-  let new_results = await ValorantResults.get()
-  let lol_new_results = await LOLResults.get()
-  let old = db.fetch("vlr_live_matches")
-  let old_lol_live_matches = db.fetch("lol_live_matches")
-  let old_results = db.fetch("vlr_results")
-  let lol_old_results = db.fetch("lol_results")
-  let array = vlr_matches.filter(m => !old?.some((om: any) => JSON.stringify(m) === JSON.stringify(om)))
-  let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
-  let lol_results_array = lol_new_results.filter(r => !lol_old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
-  let lol_live_matches_array = lol_matches.filter((m: any) => !old_lol_live_matches.some((om: any) => JSON.stringify(m) === JSON.stringify(om)))
-
-  if(array.length) {
-    db.set("vlr_live_matches", vlr_matches)
-    await send_webhook(array, "/webhooks/live/valorant")
-  }
-  if(results_array.length) {
-    db.set("vlr_results", new_results)
-    await send_webhook(results_array, "/webhooks/results/valorant")
-  }
-  if(lol_results_array.length) {
-    if(lol_new_results.length) db.set("lol_results", lol_new_results)
-    await send_webhook(lol_results_array, "/webhooks/results/lol")
-  }
-  if(lol_live_matches_array.length) {
-    if(lol_matches.length) db.set("lol_live_matches", lol_matches)
-    await send_webhook(lol_live_matches_array, "/webhooks/live/lol")
+  catch(e) {
+    console.error(e)
   }
 }, process.env.INTERVAL ?? 30000)
