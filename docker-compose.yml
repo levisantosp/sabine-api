@@ -5,8 +5,5 @@ services:
       dockerfile: Dockerfile
     image: sabine-api-docker
     restart: always
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     ports:
       - "4000:3000"
