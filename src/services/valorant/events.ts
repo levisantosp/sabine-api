@@ -3,7 +3,7 @@ import { EventsData } from "../../../types/index.js"
 
 export default {
   get: async () => {
-    const html = await (await fetch("https://www.vlr.gg/events")).text()
+    const html = await (await fetch("https://www.vlr.gg/events?tier=all")).text()
     const $ = cheerio.load(html)
     const events: EventsData[] = []
     $(".wf-card.mod-flex.event-item").each((index, element) => {
@@ -14,7 +14,6 @@ export default {
       const url = "https://vlr.gg" + $(element).attr("href")
       events.push({ id, name, status, image, url })
     })
-    
     return events
   }
 }
