@@ -217,19 +217,17 @@ setInterval(async() => {
     let old_results = db.fetch("vlr_results")
     let lol_old_results = db.fetch("lol_results")
     let array = vlr_matches.filter(m => !old?.some((om: any) => JSON.stringify(m) === JSON.stringify(om)))
-    let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
+    // let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
+    let results_array = new_results.filter(r => !old_results.some((or: any) => or.id === r.id))
     let lol_results_array = lol_new_results.filter(r => !lol_old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
     let lol_live_matches_array = lol_matches.filter((m: any) => !old_lol_live_matches.some((om: any) => JSON.stringify(m) === JSON.stringify(om)))
     if(array.length) {
       db.set("vlr_live_matches", vlr_matches)
       await send_webhook(array, "/webhooks/live/valorant")
     }
-    // console.log(old_results.slice(0, 10))
-    // console.log("-------------------------------")
-    // console.log(results_array.slice(0, 10))
     if(results_array.length) {
       db.set("vlr_results", new_results)
-      // await send_webhook(results_array, "/webhooks/results/valorant")
+      await send_webhook(results_array, "/webhooks/results/valorant")
     }
     if(lol_results_array.length) {
       if(lol_new_results.length) db.set("lol_results", lol_new_results)
