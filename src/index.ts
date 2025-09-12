@@ -227,10 +227,9 @@ setInterval(async() => {
     // console.log(old_results.slice(0, 10))
     // console.log("-------------------------------")
     // console.log(results_array.slice(0, 10))
-    console.log(results_array.length, new_results.length)
     if(results_array.length) {
       db.set("vlr_results", new_results)
-      await send_webhook(results_array, "/webhooks/results/valorant")
+      // await send_webhook(results_array, "/webhooks/results/valorant")
     }
     if(lol_results_array.length) {
       if(lol_new_results.length) db.set("lol_results", lol_new_results)
