@@ -217,7 +217,6 @@ setInterval(async() => {
     let old_results = db.fetch("vlr_results")
     let lol_old_results = db.fetch("lol_results")
     let array = vlr_matches.filter(m => !old?.some((om: any) => JSON.stringify(m) === JSON.stringify(om)))
-    // let results_array = new_results.filter(r => !old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
     let results_array = new_results.filter(r => !old_results.some((or: any) => or.id === r.id))
     let lol_results_array = lol_new_results.filter(r => !lol_old_results.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
     let lol_live_matches_array = lol_matches.filter((m: any) => !old_lol_live_matches.some((om: any) => JSON.stringify(m) === JSON.stringify(om)))
