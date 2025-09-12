@@ -1,7 +1,7 @@
 {
   "name": "sabine-api",
   "version": "1.0.0",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "test": "rm -rf test.js && tsc test.ts && node test.js",
     "start": "node --env-file=.env .",
