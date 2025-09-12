@@ -1,20 +1,19 @@
-import "dotenv/config.js"
-import { FastifyPluginAsyncTypebox, Type } from "@fastify/type-provider-typebox"
+import { type FastifyPluginAsyncTypebox, Type } from "@fastify/type-provider-typebox"
 import fastify from "fastify"
-import { preHandlerMetaHookHandler } from "fastify/types/hooks"
 import { Database } from "sileco.db"
-import ValorantEvents from "./services/valorant/events.js"
-import ValorantMatches from "./services/valorant/matches.js"
-import ValorantLiveFeed from "./services/valorant/livefeed.js"
-import ValorantNews from "./services/valorant/news.js"
-import ValorantPlayers from "./services/valorant/players.js"
-import ValorantTeams from "./services/valorant/teams.js"
-import ValorantResults from "./services/valorant/results.js"
-import LOLMatches from "./services/lol/matches.js"
-import LOLEvents from "./services/lol/events.js"
-import LOLLiveFeed from "./services/lol/livefeed.js"
-import LOLResults from "./services/lol/results.js"
-import { MatchesData, PlayerData, TeamData } from "../types/index.js"
+import ValorantEvents from "./services/valorant/events.ts"
+import ValorantMatches from "./services/valorant/matches.ts"
+import ValorantLiveFeed from "./services/valorant/livefeed.ts"
+import ValorantNews from "./services/valorant/news.ts"
+import ValorantPlayers from "./services/valorant/players.ts"
+import ValorantTeams from "./services/valorant/teams.ts"
+import ValorantResults from "./services/valorant/results.ts"
+import LOLMatches from "./services/lol/matches.ts"
+import LOLEvents from "./services/lol/events.ts"
+import LOLLiveFeed from "./services/lol/livefeed.ts"
+import LOLResults from "./services/lol/results.ts"
+import type { MatchesData, PlayerData, TeamData } from "../types/index.ts"
+import type { preHandlerMetaHookHandler } from "fastify/types/hooks.js"
 const db = new Database("db.json")
 
 const auth: preHandlerMetaHookHandler = (req, res, done) => {
@@ -26,27 +25,30 @@ const auth: preHandlerMetaHookHandler = (req, res, done) => {
   return done()
 }
 
-try {
-  db.set("vlr_events", await ValorantEvents.get())
-  db.set("vlr_matches", await ValorantMatches.get())
-  db.set("vlr_results", await ValorantResults.get())
-  db.set("vlr_news", await ValorantNews.get())
-  db.set("vlr_players", await ValorantPlayers.get())
-  db.set("vlr_teams", await ValorantTeams.get())
-  db.set("lol_events", await LOLEvents.get())
-  db.set("lol_matches", await LOLMatches.get())
-  db.set("lol_results", await LOLResults.get())
+const setData = async() => {
+  try {
+    db.set("vlr_events", await ValorantEvents.get())
+    db.set("vlr_matches", await ValorantMatches.get())
+    db.set("vlr_results", await ValorantResults.get())
+    db.set("vlr_news", await ValorantNews.get())
+    db.set("vlr_players", await ValorantPlayers.get())
+    db.set("vlr_teams", await ValorantTeams.get())
+    db.set("lol_events", await LOLEvents.get())
+    db.set("lol_matches", await LOLMatches.get())
+    db.set("lol_results", await LOLResults.get())
+  }
+  catch (e) {
+    console.log(e)
+  }
 }
-catch(e) {
-  console.log(e)
-}
+await setData()
 
 if(db.fetch("vlr_players_data")) db.remove("vlr_players_data")
 if(db.fetch("vlr_teams_data")) db.remove("vlr_teams_data")
 if(!db.fetch("vlr_live_matches")) db.set("vlr_live_matches", [])
 if(!db.fetch("lol_live_matches")) db.set("lol_live_matches", [])
 
-const routes: FastifyPluginAsyncTypebox = async (fastify) => {
+const routes: FastifyPluginAsyncTypebox = async(fastify) => {
   fastify.get("/invite", {}, (req, res) => {
     return res.redirect("https://discord.com/oauth2/authorize?client_id=1235576817683922954&scope=bot&permissions=388096", 301).code(200)
   })
@@ -68,7 +70,7 @@ const routes: FastifyPluginAsyncTypebox = async (fastify) => {
         id: Type.Optional(Type.String())
       })
     }
-  }, async (req) => {
+  }, async(req) => {
     if(req.query.id) {
       let player_data = db.fetch("vlr_players_data")?.find((p: PlayerData) => p.id === req.query.id)
       let __players = db.fetch("vlr_players_data") ?? []
@@ -89,7 +91,7 @@ const routes: FastifyPluginAsyncTypebox = async (fastify) => {
         id: Type.Optional(Type.String())
       })
     }
-  }, async (req, res) => {
+  }, async(req, res) => {
     if(req.query.id) {
       let team_data = db.fetch("vlr_teams_data")?.find((t: TeamData) => t.id === req.query.id)
       let __teams = db.fetch("vlr_teams_data") ?? []
@@ -123,7 +125,7 @@ const routes: FastifyPluginAsyncTypebox = async (fastify) => {
     return db.fetch("lol_live_matches")
   })
 }
-const send_webhook = async (data: any[], path: string) => {
+const send_webhook = async(data: any[], path: string) => {
   try {
     const res = await fetch(process.env.WEBHOOK_URL + path, {
       method: "post",
@@ -136,7 +138,7 @@ const send_webhook = async (data: any[], path: string) => {
       console.log("Failed to send webhook in path", process.env.WEBHOOK_URL + path)
     }
   }
-  catch (e) {
+  catch(e) {
     console.error(e)
   }
 }
@@ -149,7 +151,30 @@ await server.register(routes)
 await server.listen({ host: "0.0.0.0", port: 3000 })
 console.log("API is running")
 
-setInterval(async () => {
+const updateDb = async() => {
+  try {
+    const vlr_new_events = await ValorantEvents.get()
+    const vlr_new_matches = await ValorantMatches.get()
+    const vlr_new_news = await ValorantNews.get()
+    const lol_new_events = await LOLEvents.get()
+    const lol_new_matches = await LOLMatches.get()
+    const vlr_old_news = db.fetch("vlr_news")
+    const vlr_array_news = vlr_new_news.filter(nn => !vlr_old_news.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)))
+    if(vlr_array_news.length) {
+      await send_webhook(vlr_array_news, "/webhooks/news/valorant")
+    }
+    if(vlr_new_news.length) db.set("vlr_news", vlr_new_news)
+    if(vlr_new_events.length) db.set("vlr_events", vlr_new_events)
+    if(vlr_new_matches.length) db.set("vlr_matches", vlr_new_matches)
+    if(lol_new_events.length) db.set("lol_events", lol_new_events)
+    if(lol_new_matches.length) db.set("lol_matches", lol_new_matches)
+  }
+  catch (e) {
+    console.error(e)
+  }
+  setTimeout(async() => await updateDb(), 300000)
+}
+setInterval(async() => {
   try {
     const vlr_new_events = await ValorantEvents.get()
     const vlr_new_matches = await ValorantMatches.get()
@@ -170,9 +195,9 @@ setInterval(async () => {
 catch(e) {
   console.error(e)
 }
-}, 300000)
+}, process.env.INTERVAL ?? 300000)
 
-setInterval(async () => {
+setInterval(async() => {
   try {
     const vlr_live_matches = db.fetch("vlr_matches")
     const lol_live_matches = await LOLLiveFeed.get()
@@ -199,6 +224,10 @@ setInterval(async () => {
       db.set("vlr_live_matches", vlr_matches)
       await send_webhook(array, "/webhooks/live/valorant")
     }
+    // console.log(old_results.slice(0, 10))
+    // console.log("-------------------------------")
+    // console.log(results_array.slice(0, 10))
+    console.log(results_array.length, new_results.length)
     if(results_array.length) {
       db.set("vlr_results", new_results)
       await send_webhook(results_array, "/webhooks/results/valorant")

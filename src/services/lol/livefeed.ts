@@ -1,7 +1,7 @@
-import { LiveFeed } from "../../../types"
+import type { LiveFeed } from "../../../types/index.ts"
 
 export default {
-  get: async () => {
+  get: async() => {
     const res = await (await fetch(
       "https://api.pandascore.co/lol/matches/running?per_page=100&sort=begin_at",
       {

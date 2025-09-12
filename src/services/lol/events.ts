@@ -1,7 +1,7 @@
-import { EventsData } from "../../../types/index.js"
+import type { EventsData } from "../../../types/index.ts"
 
 export default {
-  get: async () => {
+  get: async() => {
     const res = await (await fetch(
       "https://api.pandascore.co/lol/leagues?per_page=100",
       {

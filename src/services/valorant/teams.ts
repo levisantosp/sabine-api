@@ -1,8 +1,8 @@
 import * as cheerio from "cheerio"
-import { PlayerLastResult, TeamData, TeamsData, UpcomingMatch } from "../../../types"
+import type { PlayerLastResult, TeamData, TeamsData, UpcomingMatch } from "../../../types/index.ts"
 
 export default {
-  get: async () => {
+  get: async() => {
     const html = await (await fetch("https://www.vlr.gg/rankings")).text()
     const $ = cheerio.load(html)
     const teams: TeamsData[] = []
@@ -19,7 +19,7 @@ export default {
 
     return teams
   },
-  getById: async (id: string | number) => {
+  getById: async(id: string | number) => {
     const html = await (await fetch("https://www.vlr.gg/team/" + id)).text()
     const resultsHtml = await (await fetch(`https://www.vlr.gg/team/matches/${id}/?group=completed`)).text()
     const $ = cheerio.load(html)

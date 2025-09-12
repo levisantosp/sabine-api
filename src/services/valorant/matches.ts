@@ -1,8 +1,8 @@
 import * as cheerio from "cheerio"
-import { MatchesData } from "../../../types"
+import type { MatchesData } from "../../../types/index.ts"
 
 export default {
-  get: async () => {
+  get: async() => {
     const html = await (await fetch("https://www.vlr.gg/matches")).text()
     const $ = cheerio.load(html)
     const matches: MatchesData[] = []

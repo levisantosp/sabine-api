@@ -1,8 +1,8 @@
 import * as cheerio from "cheerio"
-import { EventsData } from "../../../types/index.js"
+import type { EventsData } from "../../../types/index.ts"
 
 export default {
-  get: async () => {
+  get: async() => {
     const html = await (await fetch("https://www.vlr.gg/events?tier=all")).text()
     const $ = cheerio.load(html)
     const events: EventsData[] = []

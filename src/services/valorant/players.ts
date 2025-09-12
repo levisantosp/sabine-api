@@ -1,12 +1,12 @@
 import * as cheerio from "cheerio"
-import { PlayerData, PlayerLastResult, PlayerPastTeam, PlayersData } from "../../../types"
+import type { PlayerData, PlayerLastResult, PlayerPastTeam, PlayersData } from "../../../types/index.ts"
 
 export default {
-  get: async () => {
+  get: async() => {
     const html = await (await fetch("https://www.vlr.gg/stats")).text()
     const $ = cheerio.load(html)
     const players: PlayersData[] = []
-    $("table").find("tbody").find("tr").map(async (index, element) => {
+    $("table").find("tbody").find("tr").map(async(index, element) => {
       const name = $(element).find("td").find("a").find(".text-of").text().trim()
       const teamTag = $(element).find("td").find("a").find("div").last().text().trim()
       const id = $(element).find("td").find("a").attr("href")?.split("/")[2]!
@@ -16,7 +16,7 @@ export default {
 
     return players
   },
-  getById: async (id: string | number) => {
+  getById: async(id: string | number) => {
     const html = await (await fetch("https://www.vlr.gg/player/" + id)).text()
     const $ = cheerio.load(html)
     let avatar = "https:" + $(".player-header").find(".wf-avatar").find("img").attr("src")

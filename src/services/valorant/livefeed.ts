@@ -1,8 +1,8 @@
 import * as cheerio from "cheerio"
-import { LiveFeed } from "../../../types"
+import type { LiveFeed } from "../../../types/index.ts"
 
 export default {
-  get: async (id: string | number) => {
+  get: async(id: string | number) => {
     const html = await (await fetch("https://www.vlr.gg/" + id)).text()
     const $ = cheerio.load(html)
     const team0 = $(".wf-title-med").eq(0).text().replace(/\t/g, "").trim()

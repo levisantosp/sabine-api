@@ -1,7 +1,7 @@
-import { MatchesData } from "../../../types"
+import type { MatchesData } from "../../../types/index.ts"
 
 export default {
-  get: async () => {
+  get: async() => {
     const res = await (await fetch(
       "https://api.pandascore.co/lol/matches/upcoming?per_page=100&sort=begin_at",
       {
