@@ -3,7 +3,8 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    image: sabine-api-docker
+    image: sabine-api
+    container_name: sabine-api
     restart: always
     ports:
       - "4000:3000"
