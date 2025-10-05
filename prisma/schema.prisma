@@ -80,7 +80,6 @@ model News {
 
 model LolLiveMatch {
   id           String          @id
-  currentMap   String
   score1       String?
   score2       String?
   url          String?
