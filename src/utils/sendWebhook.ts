@@ -1,4 +1,4 @@
-import { error, warn } from './logger.ts'
+import { error } from './logger.ts'
 
 export default async function(data: any[], path: string) {
   try {
