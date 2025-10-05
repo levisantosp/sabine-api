@@ -24,51 +24,51 @@ model ValEvent {
 }
 
 model LolMatch {
-  id           String         @id
-  status       String?
-  tournamentName String
+  id                 String         @id
+  status             String?
+  tournamentName     String
   tournamentFullName String?
-  tournamentImage String?
-  teams        LolMatchTeam[]
-  stage        String
-  when         DateTime
-  url          String?
+  tournamentImage    String?
+  teams              LolMatchTeam[]
+  stage              String
+  when               DateTime
+  url                String?
 }
 
 model ValMatch {
-  id           String         @id
-  status       String?
-  tournamentName String
+  id                 String         @id
+  status             String?
+  tournamentName     String
   tournamentFullName String?
-  tournamentImage String?
-  teams        ValMatchTeam[]
-  stage        String
-  when         DateTime
-  url          String?
+  tournamentImage    String?
+  teams              ValMatchTeam[]
+  stage              String
+  when               DateTime
+  url                String?
 }
 
 model LolResult {
-  id           String          @id
-  status       String?
-  stage        String
-  when         DateTime
-  url          String?
-  teams        LolResultTeam[]
-  tournamentName String
+  id                 String          @id
+  status             String?
+  stage              String
+  when               DateTime
+  url                String?
+  teams              LolResultTeam[]
+  tournamentName     String
   tournamentFullName String?
-  tournamentImage String?
+  tournamentImage    String?
 }
 
 model ValResult {
-  id           String          @id
-  status       String?
-  stage        String
-  when         DateTime
-  url          String?
-  teams        ValResultTeam[]
-  tournamentName String
+  id                 String          @id
+  status             String?
+  stage              String
+  when               DateTime
+  url                String?
+  teams              ValResultTeam[]
+  tournamentName     String
   tournamentFullName String?
-  tournamentImage String?
+  tournamentImage    String?
 }
 
 model News {
@@ -79,27 +79,27 @@ model News {
 }
 
 model LolLiveMatch {
-  id           String          @id
-  stage        String?
-  streams      LolStream[]
-  teams        LolResultTeam[]
-  tournamentName String
+  id                 String          @id
+  stage              String?
+  streams            LolStream[]
+  teams              LolResultTeam[]
+  tournamentName     String
   tournamentFullName String?
-  tournamentImage String?
+  tournamentImage    String?
 }
 
 model ValLiveMatch {
-  id           String          @id
-  currentMap   String
-  score1       String?
-  score2       String?
-  url          String?
-  stage        String?
-  streams      ValStream[]
-  teams        ValResultTeam[]
-  tournamentName String
+  id                 String          @id
+  currentMap         String
+  score1             String?
+  score2             String?
+  url                String?
+  stage              String?
+  streams            ValStream[]
+  teams              ValResultTeam[]
+  tournamentName     String
   tournamentFullName String?
-  tournamentImage String?
+  tournamentImage    String?
 }
 
 model LolStream {
@@ -126,7 +126,7 @@ model ValStream {
 
 model LolResultTeam {
   id          String        @id @default(uuid())
-  match       LolResult?     @relation(fields: [resultId], references: [id])
+  match       LolResult?    @relation(fields: [resultId], references: [id])
   resultId    String?
   name        String
   score       String
@@ -138,7 +138,7 @@ model LolResultTeam {
 
 model ValResultTeam {
   id          String        @id @default(uuid())
-  match       ValResult?     @relation(fields: [resultId], references: [id])
+  match       ValResult?    @relation(fields: [resultId], references: [id])
   resultId    String?
   name        String
   score       String
