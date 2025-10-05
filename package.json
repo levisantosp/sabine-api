@@ -1,12 +1,14 @@
 {
   "name": "sabine-api",
   "version": "1.0.0",
-  "main": "dist/src/index.js",
+  "main": "src/index.ts",
   "scripts": {
-    "test": "rm -rf test.js && tsc test.ts && node test.js",
-    "start": "node --env-file=.env .",
-    "build": "rm -rf dist && tsc",
-    "dev": "node --watch --env-file=.env src/index.ts"
+    "test": "bun test.ts",
+    "start": "bun .",
+    "compile": "rm -rf dist && bun tsc",
+    "dev": "rm -rf ./prisma/database.db && bun push && bun --watch .",
+    "push": "bun prisma db push",
+    "generate": "bun prisma generate"
   },
   "keywords": [],
   "author": "levisantosp",
@@ -15,12 +17,19 @@
   "description": "",
   "dependencies": {
     "@fastify/type-provider-typebox": "^5.2.0",
+    "@prisma/client": "^6.16.3",
     "cheerio": "^1.1.2",
-    "fastify": "^5.6.0",
-    "sileco.db": "^2.2.2"
+    "colors": "^1.4.0",
+    "fastify": "^5.6.1",
+    "moment": "^2.30.1"
   },
   "devDependencies": {
-    "@types/node": "^24.3.1",
-    "typescript": "^5.9.2"
+    "@eslint/js": "^9.37.0",
+    "bun-types": "^1.2.23",
+    "eslint": "^9.37.0",
+    "globals": "^16.4.0",
+    "prisma": "^6.16.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.45.0"
   }
 }

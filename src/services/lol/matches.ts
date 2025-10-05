@@ -1,12 +1,12 @@
-import type { MatchesData } from "../../../types/index.ts"
+import type { MatchesData } from '../../../types/index.ts'
 
 export default {
   get: async() => {
     const res = await (await fetch(
-      "https://api.pandascore.co/lol/matches/upcoming?per_page=100&sort=begin_at",
+      'https://api.pandascore.co/lol/matches/upcoming?per_page=100&sort=begin_at',
       {
         headers: {
-          accept: "application/json",
+          accept: 'application/json',
           authorization: process.env.PANDA_TOKEN
         }
       }
@@ -29,11 +29,11 @@ export default {
           image: e.league.image_url
         },
         stage: e.tournament.name,
-        when: new Date(e.scheduled_at).getTime(),
+        when: new Date(e.scheduled_at),
         status: e.status
       }
     })
 
-    return matches.filter(m => m && m.status !== "completed")
+    return matches.filter(m => m && m.status !== 'completed')
   }
 }
