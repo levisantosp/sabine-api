@@ -3,10 +3,18 @@ import { prisma } from '../../database/prisma.ts'
 
 export default function(fastify: FastifyInstance) {
   fastify.get('/matches/valorant', {}, async() => {
-    return await prisma.valMatch.findMany({
+    const matches = await prisma.valMatch.findMany({
       include: {
         teams: true
       }
     })
+
+    return matches.map(({ tournamentFullName, tournamentImage, tournamentName, ...m }) => ({
+      ...m,
+      tournament: {
+        name: tournamentName,
+        image: tournamentImage
+      }
+    }))
   })
 }
