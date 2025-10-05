@@ -322,19 +322,18 @@ const sendLiveAndResults = async() => {
       await prisma.lolLiveMatch.deleteMany()
 
       for(const match of lolLiveMatches) {
-        const { streams, ...m } = match
+        const { streams, tournament, ...m } = match
         await prisma.lolLiveMatch.create({
           data: {
             ...m,
-            currentMap: m.currentMap!,
             id: m.id.toString(),
-            tournamentName: m.tournament.name,
-            tournamentImage: m.tournament.image,
+            tournamentName: tournament.name,
+            tournamentImage: tournament.image,
             teams: {
               createMany: {
                 data: m.teams.map(t => ({
                   ...t,
-                  score: t.score as string
+                  score: t.score!
                 }))
               }
             }
