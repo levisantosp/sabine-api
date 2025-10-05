@@ -5,9 +5,10 @@ on:
       - 'main'
 jobs:
   deploy:
-    name: "deploy to production"
+    name: 'Deploy to Production'
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: false
     steps:
       - name: Setup ssh
         run: |
