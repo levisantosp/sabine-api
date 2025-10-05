@@ -138,10 +138,10 @@ for(const folder of fs.readdirSync(path.resolve(__dirname, './routes'))) {
   }
 }
 
+server.addHook('preHandler', auth)
+
 server.listen({ host: '0.0.0.0', port: 3000 })
   .then(() => send('HTTP server running at 3000'))
-
-server.addHook('preHandler', auth)
 
 const sendNews = async() => {
   try {
@@ -192,7 +192,7 @@ const sendLiveAndResults = async() => {
           }
         }
       })),
-      liveMatches: (await matches.get()).filter(m => m.stage === 'LIVE')
+      liveMatches: (await matches.get()).filter(m => m.status === 'LIVE')
     } as const
 
     const vlrLiveMatches: LiveFeed[] = []
@@ -208,93 +208,138 @@ const sendLiveAndResults = async() => {
       lolLiveMatches.push(m)
     }
 
-    const vlrOldLiveMatches = await prisma.lolLiveMatch.findMany()
-    const lolOldLiveMatches = await prisma.lolLiveMatch.findMany()
+    const vlrOldLiveMatches = (await prisma.valLiveMatch.findMany({
+      include: {
+        teams: true
+      }
+    }))
+      .map(({ tournamentFullName, tournamentImage, tournamentName, ...m }) => ({
+        ...m,
+        tournament: {
+          name: tournamentName,
+          image: tournamentImage
+        }
+      }))
+
+    const lolOldLiveMatches = (await prisma.lolLiveMatch.findMany({
+      include: {
+        teams: true
+      }
+    }))
+      .map(({ tournamentFullName, tournamentImage, tournamentName, ...m }) => ({
+        ...m,
+        tournament: {
+          name: tournamentName,
+          image: tournamentImage
+        }
+      }))
 
     const vlrOldResults = await prisma.valResult.findMany()
     const lolOldResults = await prisma.lolResult.findMany()
 
     const vlrResultsArray = val.results.filter(r => !vlrOldResults.some(or => or.id === r.id))
-    const lolResultsArray = lol.results.filter(r => !lolOldResults.some((or: any) => JSON.stringify(r) === JSON.stringify(or)))
+      .map(({ tournamentFullName, tournamentImage, tournamentName, ...m }) => ({
+        ...m,
+        tournament: {
+          name: tournamentName,
+          image: tournamentImage
+        }
+      }))
 
-    const liveVlrArray = vlrLiveMatches.filter(m => !vlrOldLiveMatches.some(om => JSON.stringify(m) === JSON.stringify(om)))
-    const liveLolArray = lolLiveMatches.filter((m: any) => !lolOldLiveMatches.some(om => JSON.stringify(m) === JSON.stringify(om)))
+    const lolResultsArray = lol.results.filter(r => !lolOldResults.some(or => JSON.stringify(r) === JSON.stringify(or)))
+      .map(({ tournamentFullName, tournamentImage, tournamentName, ...m }) => ({
+        ...m,
+        tournament: {
+          name: tournamentName,
+          image: tournamentImage
+        }
+      }))
+
+    const liveVlrArray = vlrLiveMatches.filter(m =>
+      !vlrOldLiveMatches.some(om =>
+        om.id === m.id.toString() &&
+        om.score1 === m.score1 &&
+        om.score2 === m.score2
+      )
+    )
+    const liveLolArray = lolLiveMatches.filter(m =>
+      !lolOldLiveMatches.some(om =>
+        om.id === m.id.toString() &&
+        om.teams[0].score === m.teams[0].score?.toString() &&
+        om.teams[1].score === m.teams[1].score?.toString()
+      )
+    )
 
     if(liveVlrArray.length) {
-      const transactions: Prisma.PrismaPromise<any>[] = [prisma.lolLiveMatch.deleteMany()]
+      await prisma.valLiveMatch.deleteMany()
 
       for(const match of vlrLiveMatches) {
-        const { streams, ...m } = match
+        const { streams, tournament, ...m } = match
 
-        transactions.push(
-          prisma.lolLiveMatch.create({
-            data: {
-              ...m,
-              currentMap: m.currentMap!,
-              id: m.id.toString(),
-              tournamentName: m.tournament.name,
-              tournamentImage: m.tournament.image,
-              teams: {
-                createMany: {
-                  data: m.teams.map(t => ({
-                    ...t,
-                    score: t.score as string
-                  }))
-                }
+        await prisma.valLiveMatch.create({
+          data: {
+            ...m,
+            currentMap: m.currentMap!,
+            id: m.id.toString(),
+            tournamentName: tournament.name,
+            tournamentImage: tournament.image,
+            teams: {
+              createMany: {
+                data: m.teams.map(t => ({
+                  ...t,
+                  score: t.score as string
+                }))
               }
             }
-          })
-        )
+          }
+        })
       }
 
       await sendWebhook(liveVlrArray, '/webhooks/live/valorant')
     }
 
     if(vlrResultsArray.length) {
-      const transactions: Prisma.PrismaPromise<any>[] = [prisma.valResult.deleteMany()]
+      await prisma.valResult.deleteMany()
 
       for(const m of val.results) {
-        transactions.push(prisma.valResult.create({ data: m }))
+        await prisma.valResult.create({ data: m })
       }
 
       await sendWebhook(vlrResultsArray, '/webhooks/results/valorant')
     }
 
     if(lolResultsArray.length) {
-      const transactions: Prisma.PrismaPromise<any>[] = [prisma.lolResult.deleteMany()]
+      await prisma.lolResult.deleteMany()
 
       for(const m of val.results) {
-        transactions.push(prisma.lolResult.create({ data: m }))
+        await prisma.lolResult.create({ data: m })
       }
 
       await sendWebhook(lolResultsArray, '/webhooks/results/lol')
     }
 
     if(liveLolArray.length) {
-      const transactions: Prisma.PrismaPromise<any>[] = [prisma.lolLiveMatch.deleteMany()]
+      await prisma.lolLiveMatch.deleteMany()
 
       for(const match of lolLiveMatches) {
         const { streams, ...m } = match
-
-        transactions.push(
-          prisma.lolLiveMatch.create({
-            data: {
-              ...m,
-              currentMap: m.currentMap!,
-              id: m.id.toString(),
-              tournamentName: m.tournament.name,
-              tournamentImage: m.tournament.image,
-              teams: {
-                createMany: {
-                  data: m.teams.map(t => ({
-                    ...t,
-                    score: t.score as string
-                  }))
-                }
+        await prisma.lolLiveMatch.create({
+          data: {
+            ...m,
+            currentMap: m.currentMap!,
+            id: m.id.toString(),
+            tournamentName: m.tournament.name,
+            tournamentImage: m.tournament.image,
+            teams: {
+              createMany: {
+                data: m.teams.map(t => ({
+                  ...t,
+                  score: t.score as string
+                }))
               }
             }
-          })
-        )
+          }
+        })
       }
 
       await sendWebhook(liveLolArray, '/webhooks/live/lol')
