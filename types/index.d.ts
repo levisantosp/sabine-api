@@ -40,7 +40,7 @@ export type PlayerPastTeam = {
 }
 export type PlayerLastResultTeam = {
   name: string
-  score?: string | number
+  score?: string
 }
 export type PlayerLastResult = {
   id: string

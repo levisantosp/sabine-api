@@ -23,11 +23,11 @@ export default {
         teams: [
           {
             name: e.opponents[0].opponent.name,
-            score: e.results[0].score
+            score: e.results[0].score.toString()
           },
           {
             name: e.opponents[1].opponent.name,
-            score: e.results[1].score
+            score: e.results[1].score.toString()
           }
         ],
         stage: e.tournament.name,
