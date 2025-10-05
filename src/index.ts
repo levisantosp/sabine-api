@@ -122,7 +122,7 @@ await setData()
 
 await prisma.$transaction([
   prisma.lolLiveMatch.deleteMany(),
-  prisma.lolLiveMatch.deleteMany()
+  prisma.valLiveMatch.deleteMany()
 ])
 
 const server = fastify()
