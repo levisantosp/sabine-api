@@ -5,7 +5,8 @@ export default function(fastify: FastifyInstance) {
   fastify.get('/live/lol', {}, async() => {
     const matches = await prisma.lolLiveMatch.findMany({
       include: {
-        teams: true
+        teams: true,
+        streams: true
       }
     })
 

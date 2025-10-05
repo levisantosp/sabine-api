@@ -421,6 +421,12 @@ const sendLiveAndResults = async() => {
                   score: t.score!
                 }))
               }
+            },
+            streams: {
+              createMany: !streams ? undefined :
+                {
+                  data: streams
+                }
             }
           }
         })

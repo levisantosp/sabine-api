@@ -80,9 +80,6 @@ model News {
 
 model LolLiveMatch {
   id           String          @id
-  score1       String?
-  score2       String?
-  url          String?
   stage        String?
   streams      LolStream[]
   teams        LolResultTeam[]
@@ -109,11 +106,11 @@ model LolStream {
   id          String       @id @default(uuid())
   liveMatch   LolLiveMatch @relation(fields: [liveMatchId], references: [id])
   liveMatchId String
-  main        Boolean
-  language    String
-  embed_url   String
-  official    Boolean
-  raw_url     String
+  main        Boolean?
+  language    String?
+  embed_url   String?
+  official    Boolean?
+  raw_url     String?
 }
 
 model ValStream {
