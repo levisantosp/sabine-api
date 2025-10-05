@@ -118,7 +118,32 @@ const setData = async() => {
   }
 }
 
+const updateDb = async() => {
+  try {
+    const lol = {
+      events: await lolEvents.get()
+    } as const
+
+    const val = {
+      events: await events.get()
+    } as const
+
+    await prisma.$transaction([
+      prisma.lolEvent.deleteMany(),
+      prisma.valEvent.deleteMany(),
+      prisma.lolEvent.createMany({ data: lol.events }),
+      prisma.valEvent.createMany({ data: val.events })
+    ])
+  }
+  catch(e) {
+    error(e as Error)
+  }
+
+  setTimeout(updateDb, process.env.INTERVAL ?? 300000)
+}
+
 await setData()
+await updateDb()
 
 await prisma.$transaction([
   prisma.lolLiveMatch.deleteMany(),
@@ -150,10 +175,22 @@ const sendNews = async() => {
     } as const
 
     const oldNews = await prisma.news.findMany()
-    const arrayNews = val.news.filter(nn => !oldNews.some((on: any) => JSON.stringify(nn) === JSON.stringify(on)))
+    const arrayNews = val.news
+      .filter(nn =>
+        !oldNews.some(on =>
+          nn.id === on.id &&
+          nn.title === on.title &&
+          nn.description === on.description
+        )
+      )
 
     if(arrayNews.length) {
       await sendWebhook(arrayNews, '/webhooks/news/valorant')
+
+      await prisma.$transaction([
+        prisma.news.deleteMany(),
+        prisma.news.createMany({ data: val.news })
+      ])
     }
   }
   catch(e) {
@@ -234,10 +271,44 @@ const sendLiveAndResults = async() => {
         }
       }))
 
-    const vlrOldResults = await prisma.valResult.findMany()
-    const lolOldResults = await prisma.lolResult.findMany()
+    const vlrOldResults = (await prisma.valResult.findMany({
+      include: {
+        teams: true
+      }
+    }))
+      .map(({ tournamentFullName, tournamentImage, tournamentName, ...m }) => ({
+        ...m,
+        tournament: {
+          name: tournamentName,
+          image: tournamentImage
+        }
+      }))    
+    const lolOldResults = (await prisma.lolResult.findMany({
+      include: {
+        teams: true
+      }
+    }))
+      .map(({ tournamentFullName, tournamentImage, tournamentName, ...m }) => ({
+        ...m,
+        tournament: {
+          name: tournamentName,
+          image: tournamentImage,
+          full_name: tournamentFullName
+        }
+      })) 
 
-    const vlrResultsArray = val.results.filter(r => !vlrOldResults.some(or => or.id === r.id))
+    const vlrResultsArray = val.results
+      .map(r => ({
+        ...r,
+        teams: r.teams.createMany.data
+      }))
+      .filter(r =>
+        !vlrOldResults.some(or =>
+          or.id === r.id &&
+          or.teams[0].score === r.teams[0].score &&
+          or.teams[1].score === r.teams[1].score
+        )
+      )
       .map(({ tournamentFullName, tournamentImage, tournamentName, ...m }) => ({
         ...m,
         tournament: {
@@ -246,12 +317,24 @@ const sendLiveAndResults = async() => {
         }
       }))
 
-    const lolResultsArray = lol.results.filter(r => !lolOldResults.some(or => JSON.stringify(r) === JSON.stringify(or)))
+    const lolResultsArray = lol.results
+      .map(r => ({
+        ...r,
+        teams: r.teams.createMany.data
+      }))
+      .filter(r =>
+        !lolOldResults.some(or =>
+          or.id === r.id &&
+          or.teams[0].score === r.teams[0].score &&
+          or.teams[1].score === r.teams[1].score
+        )
+      )
       .map(({ tournamentFullName, tournamentImage, tournamentName, ...m }) => ({
         ...m,
         tournament: {
           name: tournamentName,
-          image: tournamentImage
+          image: tournamentImage,
+          full_name: tournamentFullName
         }
       }))
 
@@ -265,8 +348,8 @@ const sendLiveAndResults = async() => {
     const liveLolArray = lolLiveMatches.filter(m =>
       !lolOldLiveMatches.some(om =>
         om.id === m.id.toString() &&
-        om.teams[0].score === m.teams[0].score?.toString() &&
-        om.teams[1].score === m.teams[1].score?.toString()
+        om.teams[0].score === m.teams[0].score &&
+        om.teams[1].score === m.teams[1].score
       )
     )
 
@@ -311,7 +394,7 @@ const sendLiveAndResults = async() => {
     if(lolResultsArray.length) {
       await prisma.lolResult.deleteMany()
 
-      for(const m of val.results) {
+      for(const m of lol.results) {
         await prisma.lolResult.create({ data: m })
       }
 
@@ -323,12 +406,14 @@ const sendLiveAndResults = async() => {
 
       for(const match of lolLiveMatches) {
         const { streams, tournament, ...m } = match
+
         await prisma.lolLiveMatch.create({
           data: {
             ...m,
             id: m.id.toString(),
             tournamentName: tournament.name,
             tournamentImage: tournament.image,
+            tournamentFullName: tournament.full_name,
             teams: {
               createMany: {
                 data: m.teams.map(t => ({
