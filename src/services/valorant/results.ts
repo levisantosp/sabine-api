@@ -53,7 +53,8 @@ export default {
           image: `https:${$(element).find('.match-item-icon img').attr('src')}`
         },
         stage,
-        when: timestamp
+        when: timestamp,
+        url: 'https://vlr.gg/' + id
       })
     })
     

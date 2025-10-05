@@ -44,7 +44,8 @@ export default {
           image: `https:${$(element).find('.match-item-icon img').attr('src')}`
         },
         stage,
-        when
+        when,
+        url: 'https://vlr.gg/' + id
       })
     })
     
