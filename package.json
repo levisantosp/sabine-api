@@ -5,10 +5,11 @@
   "scripts": {
     "test": "bun test.ts",
     "start": "bun .",
-    "compile": "rm -rf dist && bun tsc",
+    "compile": "bun lint && bun tsc",
     "dev": "rm -rf ./prisma/database.db && bun push && bun --watch .",
     "push": "bun prisma db push",
-    "generate": "bun prisma generate"
+    "generate": "bun prisma generate",
+    "lint": "bun eslint ."
   },
   "keywords": [],
   "author": "levisantosp",
