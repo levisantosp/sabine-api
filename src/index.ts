@@ -177,11 +177,7 @@ const sendNews = async() => {
     const oldNews = await prisma.news.findMany()
     const arrayNews = val.news
       .filter(nn =>
-        !oldNews.some(on =>
-          nn.id === on.id &&
-          nn.title === on.title &&
-          nn.description === on.description
-        )
+        !oldNews.some(on => nn.id == on.id)
       )
 
     if(arrayNews.length) {
