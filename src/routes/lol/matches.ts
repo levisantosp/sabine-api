@@ -13,7 +13,8 @@ export default function(fastify: FastifyInstance) {
       ...m,
       tournament: {
         name: tournamentName,
-        image: tournamentImage
+        image: tournamentImage,
+        full_name: tournamentFullName
       }
     }))
   })
