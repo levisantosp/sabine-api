@@ -135,10 +135,15 @@ const updateDb = async() => {
 await setData().catch(e => error(e))
 await updateDb().catch(e => error(e))
 
-await prisma.$transaction([
-  prisma.lolLiveMatch.deleteMany(),
-  prisma.valLiveMatch.deleteMany()
-])
+try {
+  await prisma.$transaction([
+    prisma.lolLiveMatch.deleteMany(),
+    prisma.valLiveMatch.deleteMany()
+  ])
+}
+catch(e) {
+  error(e as Error)
+}
 
 const server = fastify()
 
