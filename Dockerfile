@@ -7,6 +7,5 @@ COPY . .
 
 RUN bun i --frozen-lockfile
 RUN bun compile
-RUN bun push
 
 CMD ["bun", "start"]

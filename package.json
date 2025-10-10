@@ -4,7 +4,7 @@
   "main": "src/index.ts",
   "scripts": {
     "test": "bun test.ts",
-    "start": "bun .",
+    "start": "rm -rf ./prisma/database.db && bun push && bun .",
     "compile": "bun lint && bun tsc",
     "dev": "rm -rf ./prisma/database.db && bun push && bun --watch .",
     "push": "bun prisma db push",
