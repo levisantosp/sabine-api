@@ -1,7 +1,7 @@
 import colors from 'colors'
 import moment from 'moment'
 
-export const send = (message: string) => console.log(colors.green(`[${moment(Date.now()).format('hh:mm:ss A')}] ${message}`))
+export const info = (message: string) => console.log(colors.green(`[${moment(Date.now()).format('hh:mm:ss A')}] ${message}`))
 
 export const warn = (message: string) => console.log(colors.yellow(`[${moment(Date.now()).format('hh:mm:ss A')}] ${message}`))
 

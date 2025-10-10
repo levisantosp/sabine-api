@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client'
-import { error, send } from './utils/logger.ts'
+import { error, info } from './utils/logger.ts'
 import lolEvents from './services/lol/events.ts'
 import lolMatches from './services/lol/matches.ts'
 import lolResults from './services/lol/results.ts'
@@ -161,7 +161,7 @@ for(const folder of fs.readdirSync(path.resolve(__dirname, './routes'))) {
 server.addHook('preHandler', auth)
 
 server.listen({ host: '0.0.0.0', port: 3000 })
-  .then(() => send('HTTP server running at 3000'))
+  .then(() => info('HTTP server running at 3000'))
 
 const sendNews = async() => {
   const val = {
