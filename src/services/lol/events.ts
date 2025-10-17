@@ -12,6 +12,8 @@ export default {
       }
     )).json()
 
+    if(!res.length) return []
+
     let events: EventsData[] = res.map((d: any) => (
       {
         name: d.name,

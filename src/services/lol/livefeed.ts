@@ -12,6 +12,8 @@ export default {
       }
     )).json()
 
+    if(!res.length) return []
+
     const matches: LiveFeed[] = res.map((e: any) => {
       return {
         id: e.id.toString(),

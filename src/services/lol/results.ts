@@ -12,6 +12,8 @@ export default {
       }
     )).json()
 
+    if(!res.length) return []
+
     const matches: ResultsData[] = res.map((e: any) => {
       const winnerScore = Math.max(
         e.results[0]?.score,
