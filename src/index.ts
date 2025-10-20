@@ -347,7 +347,7 @@ const sendLiveAndResults = async() => {
       await prisma.valLiveMatch.create({
         data: {
           ...m,
-          currentMap: m.currentMap!,
+          currentMap: m.currentMap ?? '',
           id: m.id.toString(),
           tournamentName: tournament.name,
           tournamentImage: tournament.image,
