@@ -2,7 +2,7 @@ import type { LiveFeed } from '../../../types/index.d.ts'
 
 export default {
   get: async() => {
-    const res = await (await fetch(
+    const res = await fetch(
       'https://api.pandascore.co/lol/matches/running?per_page=100&sort=begin_at',
       {
         headers: {
@@ -10,11 +10,15 @@ export default {
           authorization: process.env.PANDA_TOKEN
         }
       }
-    )).json()
+    )
 
-    if(!res.length) return []
+    if(!res.ok) return []
 
-    const matches: LiveFeed[] = res.map((e: any) => {
+    const data = await res.json()
+
+    if(!data.length) return []
+
+    const matches: LiveFeed[] = data.map((e: any) => {
       return {
         id: e.id.toString(),
         tournament: {

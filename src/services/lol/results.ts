@@ -2,7 +2,7 @@ import type { ResultsData } from '../../../types/index.ts'
 
 export default {
   get: async() => {
-    const res = await (await fetch(
+    const res = await fetch(
       'https://api.pandascore.co/lol/matches/past?per_page=100&sort=-end_at&filter[status]=finished',
       {
         headers: {
@@ -10,11 +10,15 @@ export default {
           authorization: process.env.PANDA_TOKEN
         }
       }
-    )).json()
+    )
 
-    if(!res.length) return []
+    if(!res.ok) return []
 
-    const matches: ResultsData[] = res.map((e: any) => {
+    const data = await res.json()
+
+    if(!data.length) return []
+
+    const matches: ResultsData[] = data.map((e: any) => {
       const winnerScore = Math.max(
         e.results[0]?.score,
         e.results[1]?.score

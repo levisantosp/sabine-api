@@ -2,7 +2,7 @@ import type { EventsData } from '../../../types/index.d.ts'
 
 export default {
   get: async() => {
-    const res = await (await fetch(
+    const res = await fetch(
       'https://api.pandascore.co/lol/leagues?per_page=100',
       {
         headers: {
@@ -10,11 +10,15 @@ export default {
           authorization: process.env.PANDA_TOKEN
         }
       }
-    )).json()
+    )
 
-    if(!res.length) return []
+    if(!res.ok) return []
 
-    let events: EventsData[] = res.map((d: any) => (
+    const data = await res.json()
+
+    if(!data.length) return []
+
+    let events: EventsData[] = data.map((d: any) => (
       {
         name: d.name,
         id: d.id.toString(),
