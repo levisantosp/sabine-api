@@ -57,7 +57,8 @@ const setData = async() => {
           data: teams
         }
       }
-    })),
+    }))
+      .filter(match => !isNaN(match.when.getTime())),
     results: (await results.get()).map(({ tournament, teams, ...m }) => ({
       ...m,
       tournamentName: tournament.name,
