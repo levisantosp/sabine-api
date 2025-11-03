@@ -138,6 +138,18 @@ await updateDb().catch(e => error(e))
 
 try {
   await prisma.$transaction([
+    prisma.lolStream.deleteMany(),
+    prisma.valStream.deleteMany(),
+    prisma.lolResultTeam.deleteMany({
+      where: {
+        liveMatchId: { not: null }
+      }
+    }),
+    prisma.valResultTeam.deleteMany({
+      where: {
+        liveMatchId: { not: null }
+      }
+    }),
     prisma.lolLiveMatch.deleteMany(),
     prisma.valLiveMatch.deleteMany()
   ])
@@ -340,7 +352,15 @@ const sendLiveAndResults = async() => {
   )
 
   if(liveVlrArray.length) {
-    await prisma.valLiveMatch.deleteMany()
+    await prisma.$transaction([
+      prisma.valStream.deleteMany(),
+      prisma.valResultTeam.deleteMany({
+        where: {
+          liveMatchId: { not: null }
+        }
+      }),
+      prisma.valLiveMatch.deleteMany()
+    ])
 
     for(const match of vlrLiveMatches) {
       const { streams, tournament, ...m } = match
@@ -388,7 +408,15 @@ const sendLiveAndResults = async() => {
   }
 
   if(liveLolArray.length) {
-    await prisma.lolLiveMatch.deleteMany()
+    await prisma.$transaction([
+      prisma.lolStream.deleteMany(),
+      prisma.lolResultTeam.deleteMany({
+        where: {
+          liveMatchId: { not: null }
+        }
+      }),
+      prisma.lolLiveMatch.deleteMany()
+    ])
 
     for(const match of lolLiveMatches) {
       const { streams, tournament, ...m } = match
