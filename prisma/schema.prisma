@@ -138,7 +138,7 @@ model LolResultTeam {
 
 model ValResultTeam {
   id          String        @id @default(uuid())
-  match       ValResult?    @relation(fields: [resultId], references: [id])
+  match       ValResult?    @relation(fields: [resultId], references: [id], onDelete: Cascade)
   resultId    String?
   name        String
   score       String
