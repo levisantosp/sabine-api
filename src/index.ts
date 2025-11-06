@@ -117,19 +117,56 @@ const setData = async() => {
 const updateDb = async() => {
   try {
     const lol = {
-      events: await lolEvents.get()
+      events: await lolEvents.get(),
+      matches: (await lolMatches.get()).map(({ tournament, teams, ...m }) => ({
+        ...m,
+        tournamentName: tournament.name,
+        tournamentFullName: tournament.full_name,
+        tournamentImage: tournament.image,
+        teams: {
+          createMany: {
+            data: teams
+          }
+        }
+      }))
     } as const
 
     const val = {
-      events: await events.get()
+      events: await events.get(),
+      matches: (await matches.get()).map(({ tournament, teams, ...m }) => ({
+        ...m,
+        tournamentName: tournament.name,
+        tournamentFullName: tournament.full_name,
+        tournamentImage: tournament.image,
+        teams: {
+          createMany: {
+            data: teams
+          }
+        }
+      }))
+        .filter(match => !isNaN(match.when.getTime()))
     } as const
 
     await prisma.$transaction([
       prisma.lolEvent.deleteMany(),
       prisma.valEvent.deleteMany(),
+      prisma.valMatch.deleteMany(),
+      prisma.lolMatch.deleteMany(),
       prisma.lolEvent.createMany({ data: lol.events }),
       prisma.valEvent.createMany({ data: val.events })
     ])
+
+    const transactions: Prisma.PrismaPromise<any>[] = []
+
+    for(const match of lol.matches) {
+      transactions.push(prisma.lolMatch.create({ data: match }))
+    }
+
+    for(const match of val.matches) {
+      transactions.push(prisma.valMatch.create({ data: match }))
+    }
+
+    await prisma.$transaction(transactions)
   }
   catch(e) {
     error(e as Error)
