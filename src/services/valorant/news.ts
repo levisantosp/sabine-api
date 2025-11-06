@@ -3,7 +3,9 @@ import type { NewsData } from '../../../types/index.d.ts'
 
 export default {
   get: async() => {
-    const html = await (await fetch('https://www.vlr.gg/news')).text()
+    const html = await (await fetch('https://www.vlr.gg/news', {
+      cache: 'no-store'
+    })).text()
 
     const $ = cheerio.load(html)
 

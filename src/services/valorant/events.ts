@@ -3,7 +3,9 @@ import type { EventsData } from '../../../types/index.d.ts'
 
 export default {
   get: async() => {
-    const html = await (await fetch('https://www.vlr.gg/events?tier=all')).text()
+    const html = await (await fetch('https://www.vlr.gg/events?tier=all', {
+      cache: 'no-store'
+    })).text()
 
     const $ = cheerio.load(html)
 

@@ -8,7 +8,8 @@ export default {
         headers: {
           accept: 'application/json',
           authorization: process.env.PANDA_TOKEN
-        }
+        },
+        cache: 'no-store'
       }
     )
 

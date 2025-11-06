@@ -3,7 +3,9 @@ import type { LiveFeed } from '../../../types/index.d.ts'
 
 export default {
   get: async(id: string | number) => {
-    const html = await (await fetch('https://www.vlr.gg/' + id)).text()
+    const html = await (await fetch('https://www.vlr.gg/' + id, {
+      cache: 'no-store'
+    })).text()
 
     const $ = cheerio.load(html)
 

@@ -3,7 +3,9 @@ import type { MatchesData } from '../../../types/index.d.ts'
 
 export default {
   get: async() => {
-    const html = await (await fetch('https://www.vlr.gg/matches')).text()
+    const html = await (await fetch('https://www.vlr.gg/matches', {
+      cache: 'no-store'
+    })).text()
 
     const $ = cheerio.load(html)
 
